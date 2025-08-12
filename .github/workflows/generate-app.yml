@@ -1,0 +1,60 @@
+name: Generate App via Cursor
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: "Generation prompt"
+        required: true
+      app_name:
+        description: "Target app/branch name"
+        required: false
+      model:
+        description: "Cursor model (optional)"
+        required: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Make script executable
+        run: chmod +x scripts/run-cursor-agent.sh
+
+      - name: Run Cursor Agent (headless)
+        run: |
+          bash scripts/run-cursor-agent.sh "${{ github.event.inputs.prompt }}" "${{ github.event.inputs.model }}" "${{ github.event.inputs.app_name }}"
+        env:
+          CURSOR_KEY: ${{ secrets.CURSOR_KEY }}
+
+      - name: Commit & Push
+        run: |
+          export BRANCH="generated/${{ github.event.inputs.app_name || github.run_id }}"
+          git checkout -B "$BRANCH"
+          git config user.name "appnar-bot"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "feat: auto-generate via Cursor (${GITHUB_RUN_ID})" || echo "No changes to commit"
+          git push -u origin "$BRANCH"
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: cursor-generation-logs
+          path: logs/
+          if-no-files-found: ignore
