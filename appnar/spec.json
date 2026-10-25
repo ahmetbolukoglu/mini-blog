@@ -14,11 +14,18 @@
   ],
   "language": "tr",
   "accent": "#f87171",
-  "revision": 7,
-  "requestedAt": "2026-10-25T21:52:25.251Z",
+  "revision": 8,
+  "requestedAt": "2026-10-25T21:55:19.558Z",
   "keyEndpoint": "https://wcsajvthqoyrircwlvob.supabase.co/functions/v1/ai-key",
   "engine": "local",
   "change": {
-    "text": "1. Tasarımı yeniden tasarla: Modern, temiz ve kullanıcı dostu bir arayüz oluştur. 2. Hataları düzelt: 'Yeni Proje Ekle' ve 'Yeni Görev Ekle' butonlarının tıklama olaylarını düzelt. 3. Butonlara açıklayıcı isimler ve etkileşimli geri bildirim ekle. 4. CSS ile butonlara hover ve click efektleri ekle. 5. Butonların renkleri ve boyutları tutarlı olmalı."
+    "text": "Fix every problem the browser check found.",
+    "issues": [
+      "On page load: Uncaught ReferenceError: initPostSection is not defined (at initAllSections src/app.js:220 ← init src/app.js:76 ← src/app.js:80)",
+      "Clicking \"Kaydet\" throws: Uncaught ReferenceError: initPostSection is not defined (at initAllSections src/app.js:220 ← init src/app.js:76 ← src/app.js:80)",
+      "Clicking \"Yeni Yazı Ekle\" (#new-post-btn) does nothing visible (no DOM change, dialog or download).",
+      "Clicking \"İlk Yazınızı Oluşturun\" (#create-first-post) does nothing visible (no DOM change, dialog or download).",
+      "Clicking \"İptal\" (#cancel-task-btn) does nothing visible (no DOM change, dialog or download)."
+    ]
   }
 }
