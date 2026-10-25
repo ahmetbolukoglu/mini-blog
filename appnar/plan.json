@@ -1,0 +1,93 @@
+{
+  "title": "Mini Blog",
+  "tagline": "Kişisel yazılarınızı taslaklardan yayımlayın ve etiketleyin",
+  "features": [
+    "Yazı taslakları ve yayın yönetimi",
+    "Etiketleme ve kategori yönetimi",
+    "Yazı ekleme, düzenleme ve silme",
+    "Etiketlere göre filtreleme",
+    "Yazıların yayın tarihi yönetimi",
+    "Yazıları sıralama ve arama",
+    "Veri dışa aktarma ve içe aktarma"
+  ],
+  "data_model": "Blog yazıları, her biri başlık, içerik, durum (taslak/yayın), etiketler, yayın tarihi ve oluşturulma tarihi içerir",
+  "screens": [
+    "Yazı listesi ve filtreleme paneli",
+    "Yazı oluşturma/düzenleme formu",
+    "Yazı detay görünümü",
+    "Etiket yönetimi paneli",
+    "Yayınlama ayarları",
+    "Veri dışa aktarma içe aktarma"
+  ],
+  "logic_api": [
+    {
+      "name": "createPost",
+      "signature": "(posts, title, content, tags, publishDate) => posts",
+      "purpose": "Yeni bir blog yazısı oluşturur"
+    },
+    {
+      "name": "updatePost",
+      "signature": "(posts, id, updates) => posts",
+      "purpose": "Mevcut bir blog yazısını günceller"
+    },
+    {
+      "name": "deletePost",
+      "signature": "(posts, id) => posts",
+      "purpose": "Bir blog yazısını siler"
+    },
+    {
+      "name": "togglePostStatus",
+      "signature": "(posts, id) => posts",
+      "purpose": "Yazının durumunu taslak ve yayın arasında değiştirir"
+    },
+    {
+      "name": "filterPostsByTag",
+      "signature": "(posts, tag) => posts",
+      "purpose": "Belirli bir etikete sahip yazıları filtreler"
+    },
+    {
+      "name": "sortPosts",
+      "signature": "(posts, sortBy, order) => posts",
+      "purpose": "Yazıları belirtilen kriterlere göre sıralar"
+    },
+    {
+      "name": "validatePost",
+      "signature": "(title, content) => { isValid: boolean, errors: string[] }",
+      "purpose": "Yazı verilerini doğrular"
+    },
+    {
+      "name": "formatDate",
+      "signature": "(date) => string",
+      "purpose": "Tarihi GG.AA.YYYY formatına çevirir"
+    },
+    {
+      "name": "formatCurrency",
+      "signature": "(amount) => string",
+      "purpose": "Tutarı ₺ formatında gösterir"
+    },
+    {
+      "name": "generateExportData",
+      "signature": "(posts) => string",
+      "purpose": "Yazı verilerini dışa aktarım formatında döndürür"
+    },
+    {
+      "name": "parseImportData",
+      "signature": "(data) => posts",
+      "purpose": "Dışa aktarılan veriyi yazı nesnelerine çevirir"
+    }
+  ],
+  "test_cases": [
+    "Yeni bir yazı oluşturulduğunda doğru alanlar doldurulur",
+    "Yazı düzenleme işlemi doğru şekilde uygulanır",
+    "Yazı silme işlemi başarılı bir şekilde gerçekleştirilir",
+    "Yazı durumu taslak ve yayın arasında doğru şekilde değiştirilir",
+    "Etiketlere göre yazılar doğru şekilde filtrelenir",
+    "Yazılar tarih sırasına göre doğru şekilde sıralanır",
+    "Yazı doğrulama işlemi başarısız durumlarda hata mesajı döndürür",
+    "Tarih formatlama işlemi GG.AA.YYYY formatında çalışır",
+    "Para birimi formatlama işlemi ₺ formatında çalışır",
+    "Dışa aktarma işlemi tüm yazı verilerini doğru şekilde döndürür",
+    "İçe aktarma işlemi dışa aktarılan veriyi doğru şekilde işler",
+    "Yazı listesinde filtreleme işlemi etiketlere göre doğru çalışır"
+  ]
+}
