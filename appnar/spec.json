@@ -14,11 +14,19 @@
   ],
   "language": "tr",
   "accent": "#f87171",
-  "revision": 2,
-  "requestedAt": "2026-10-25T15:15:25.895Z",
+  "revision": 3,
+  "requestedAt": "2026-10-25T15:19:28.211Z",
   "keyEndpoint": "https://wcsajvthqoyrircwlvob.supabase.co/functions/v1/ai-key",
   "engine": "local",
   "change": {
-    "text": "Tasarımı daha da iyileştirmek için kullanıcıdan hangi bölümlerde değişiklik istediğini detaylı şekilde isteyin. Örneğin: renk paleti, tipografi, buton stilleri, responsive tasarım, animasyonlar vb."
+    "text": "Fix every problem the browser check found.",
+    "issues": [
+      "Buttons in index.html that src/app.js never wires up: #theme-toggle, #add-project-btn, #cancel-project-btn, #add-task-btn, #cancel-task-btn",
+      "Clicking \"Gündüz/Gece temasi değiştir\" (#theme-toggle) does nothing visible (no DOM change, dialog or download).",
+      "Clicking \"Yeni Proje Ekle\" (#add-project-btn) does nothing visible (no DOM change, dialog or download).",
+      "Clicking \"İptal\" (#cancel-project-btn) does nothing visible (no DOM change, dialog or download).",
+      "Clicking \"Yeni Görev Ekle\" (#add-task-btn) does nothing visible (no DOM change, dialog or download).",
+      "Clicking \"İptal\" (#cancel-task-btn) does nothing visible (no DOM change, dialog or download)."
+    ]
   }
 }
