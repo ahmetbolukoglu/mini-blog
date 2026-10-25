@@ -216,6 +216,8 @@ function initAllSections() {
   initProjectSection();
   initTaskSection();
   initThemeToggle();
+  initDesignFeedback();
+  initPostSection();
 }
 
 // Render posts list
