@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mini Blog</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>Mini Blog</h1>
+    <p class="tagline">Kişisel yazılarınızı taslaklardan yayımlayın ve etiketleyin</p>
+  </header>
+
+  <main class="app-main">
+    <section class="controls-section">
+      <div class="filter-controls">
+        <div class="filter-group">
+          <label for="tag-filter">Etikete Göre Filtrele</label>
+          <select id="tag-filter" class="filter-select">
+            <option value="">Tüm Etiketler</option>
+          </select>
+        </div>
+        <button id="new-post-btn" class="btn btn-primary">Yeni Yazı</button>
+      </div>
+    </section>
+
+    <section class="posts-section" id="posts-section">
+      <div id="empty-state" class="empty-state">
+        <p>Henüz hiç yazı yok. Yeni bir yazı oluşturmak ister misiniz?</p>
+        <button id="create-first-post" class="btn btn-secondary">Yeni Yazı Oluştur</button>
+      </div>
+      <div id="posts-container" class="posts-container"></div>
+    </section>
+
+    <section class="post-form-section" id="post-form-section" hidden>
+      <h2 id="form-title">Yazı Oluştur</h2>
+      <form id="post-form">
+        <input type="hidden" id="post-id">
+        <div class="form-group">
+          <label for="post-title">Başlık</label>
+          <input type="text" id="post-title" required>
+        </div>
+        <div class="form-group">
+          <label for="post-content">İçerik</label>
+          <textarea id="post-content" rows="10" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="post-tags">Etiketler (virgülle ayrılmış)</label>
+          <input type="text" id="post-tags" placeholder="örn: teknoloji, hayat">
+        </div>
+        <div class="form-group">
+          <label for="post-publish-date">Yayınlama Tarihi (isteğe bağlı)</label>
+          <input type="date" id="post-publish-date">
+        </div>
+        <div class="form-actions">
+          <button type="button" id="cancel-post" class="btn btn-secondary">İptal</button>
+          <button type="submit" id="save-post" class="btn btn-primary">Kaydet</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Built with AppNar</p>
+  </footer>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
