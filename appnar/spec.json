@@ -14,8 +14,11 @@
   ],
   "language": "tr",
   "accent": "#f87171",
-  "revision": 1,
-  "requestedAt": "2026-10-25T06:35:08.870Z",
+  "revision": 2,
+  "requestedAt": "2026-10-25T15:15:25.895Z",
   "keyEndpoint": "https://wcsajvthqoyrircwlvob.supabase.co/functions/v1/ai-key",
-  "engine": "local"
+  "engine": "local",
+  "change": {
+    "text": "Tasarımı daha da iyileştirmek için kullanıcıdan hangi bölümlerde değişiklik istediğini detaylı şekilde isteyin. Örneğin: renk paleti, tipografi, buton stilleri, responsive tasarım, animasyonlar vb."
+  }
 }
