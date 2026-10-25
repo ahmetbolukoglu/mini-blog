@@ -176,6 +176,123 @@ export async function smokeTest(root = '.', { chromePath = process.env.CHROME_PA
   return report;
 }
 
+/**
+ * Runs in the page: design problems a person would notice, as plain lines.
+ * Sideways scrolling, text too faint to read, tap targets too small on a
+ * phone, buttons/inputs left in the browser's default look.
+ */
+export function designProblems(mobile) {
+  const out = [];
+  const W = window.innerWidth;
+  const visible = (el) => {
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && Number(cs.opacity) > 0.05;
+  };
+  const name = (el) => (el.id ? `#${el.id}` : typeof el.className === 'string' && el.className.trim() ? `${el.tagName.toLowerCase()}.${el.className.trim().split(/\s+/)[0]}` : el.tagName.toLowerCase());
+  const label = (el) => `${name(el)}${el.textContent?.trim() ? ` "${el.textContent.trim().slice(0, 30)}"` : ''}`;
+  const all = [...document.querySelectorAll('body *')].filter(visible);
+
+  // Sideways scrolling (scrolling tables and boards are fine).
+  const extra = document.documentElement.scrollWidth - W;
+  if (extra > 1) {
+    const wide = all.filter((el) => el.getBoundingClientRect().right > W + 1 && getComputedStyle(el).position !== 'fixed' && !el.closest('.table-wrap, .board'));
+    const roots = wide.filter((el) => !wide.includes(el.parentElement)).slice(0, 3).map(name);
+    out.push(`At ${W} px wide the page scrolls sideways (${extra} px too wide)${roots.length ? `: ${roots.join(', ')} stick out` : ''}.`);
+  }
+
+  // Tap targets on a phone.
+  if (mobile) {
+    const small = all
+      .filter((el) => el.matches('button, a, select, input:not([type=checkbox]):not([type=radio]):not([type=hidden]), [role=button]'))
+      .filter((el) => {
+        const r = el.getBoundingClientRect();
+        return r.height < 32 || r.width < 32;
+      });
+    if (small.length) out.push(`On a phone these controls are smaller than 32 px, hard to tap: ${small.slice(0, 4).map(label).join(', ')}.`);
+  }
+
+  // Text contrast (WCAG: 4.5:1, 3:1 for large text).
+  const rgb = (c) => {
+    const m = String(c).match(/rgba?\(([^)]+)\)/);
+    if (!m) return null;
+    const [r, g, b, a = 1] = m[1].split(/[\s,/]+/).filter(Boolean).map(Number);
+    return { r, g, b, a };
+  };
+  const lum = ({ r, g, b }) => {
+    const f = (v) => {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+  };
+  const background = (el) => {
+    for (let e = el; e; e = e.parentElement) {
+      const c = rgb(getComputedStyle(e).backgroundColor);
+      if (c && c.a > 0.5) return c;
+    }
+    // No background anywhere: the canvas, which is dark only if the page itself supports dark.
+    const dark = matchMedia('(prefers-color-scheme: dark)').matches && /dark/.test(getComputedStyle(document.documentElement).colorScheme);
+    return dark ? { r: 0, g: 0, b: 0 } : { r: 255, g: 255, b: 255 };
+  };
+  const faint = [];
+  for (const el of all) {
+    if (![...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) continue;
+    const cs = getComputedStyle(el);
+    const fg = rgb(cs.color);
+    if (!fg) continue;
+    const bg = background(el);
+    const [a, b] = [lum(fg), lum(bg)].sort((x, y) => y - x);
+    const ratio = (a + 0.05) / (b + 0.05);
+    const size = parseFloat(cs.fontSize);
+    const large = size >= 24 || (size >= 18.6 && Number(cs.fontWeight) >= 700);
+    if (ratio < (large ? 3 : 4.5)) faint.push(`${label(el)} (${ratio.toFixed(1)}:1)`);
+  }
+  if (faint.length) out.push(`Text too faint to read (contrast below 4.5:1)${mobile ? '' : ' in dark mode'}: ${faint.slice(0, 4).join(', ')}.`);
+
+  // Controls left in the browser's default look.
+  const plain = all.filter((el) => {
+    const cs = getComputedStyle(el);
+    if (el.matches('button, input[type=button], input[type=submit]')) return /outset/.test(cs.borderStyle) || cs.backgroundColor === 'rgb(239, 239, 239)' || cs.backgroundColor === 'rgb(240, 240, 240)';
+    if (el.matches('input:not([type=checkbox]):not([type=radio]), select, textarea')) return /inset/.test(cs.borderStyle);
+    return false;
+  });
+  if (plain.length) out.push(`These controls still have the browser's default look (give them kit classes like .btn / .input): ${plain.slice(0, 4).map(label).join(', ')}.`);
+  return out;
+}
+
+/** Opens the app on a phone (light) and on a desktop (dark) and lists design problems. */
+export async function designReview(root = '.', { chromePath = process.env.CHROME_PATH } = {}) {
+  let chromium;
+  try {
+    ({ chromium } = await import('playwright-core'));
+  } catch {
+    return { skipped: 'playwright-core is not installed', problems: [] };
+  }
+  const exe = chromePath ?? CHROMES.find((p) => existsSync(p));
+  if (!exe) return { skipped: 'no Chrome found', problems: [] };
+  const server = await serveStatic(root);
+  const browser = await chromium.launch({ executablePath: exe, args: ['--no-sandbox'] });
+  const problems = [];
+  try {
+    for (const view of [
+      { mobile: true, viewport: { width: 390, height: 844 }, colorScheme: 'light' },
+      { mobile: false, viewport: { width: 1280, height: 900 }, colorScheme: 'dark' },
+    ]) {
+      // Not isMobile: mobile emulation zooms out to fit a too-wide page, which would hide the overflow.
+      const page = await browser.newPage({ viewport: view.viewport, colorScheme: view.colorScheme });
+      await page.goto(server.url, { waitUntil: 'load', timeout: 20_000 });
+      await page.waitForTimeout(300);
+      problems.push(...(await page.evaluate(designProblems, view.mobile)));
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+    server.close();
+  }
+  return { problems };
+}
+
 /** Human-readable problem lines for the model and for AppNar's UI. */
 export function describeSmoke(report) {
   const lines = [];

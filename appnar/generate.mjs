@@ -753,6 +753,16 @@ async function readText(path) {
 
 async function write(path, content) {
   await mkdir(dirname(path), { recursive: true });
+  // Apps on the UI kit: styles.css keeps only the accent and the app's own styles. Models
+  // restyle kit classes anyway, which breaks the checked design (contrast, dark mode, spacing).
+  if (path === 'styles.css' && existsSync('ui.css')) {
+    const kit = await import('./ui-kit.mjs').catch(() => null);
+    if (kit?.cleanAppStyles) {
+      const { css, removed } = kit.cleanAppStyles(content);
+      if (removed.length) console.log(`  styles.css: ${removed.length} rule(s) that restyled the kit removed (${[...new Set(removed)].slice(0, 6).join(', ')})`);
+      content = css;
+    }
+  }
   await writeFile(path, content);
 }
 
@@ -807,7 +817,10 @@ export async function commitViaApi(message, paths, env = process.env, fetcher = 
  */
 async function commit(message, paths) {
   if (process.env.APPNAR_GITHUB_TOKEN) return commitViaApi(message, paths);
-  git('add', '--', ...paths);
+  // e.g. ui.css only exists when the UI kit was available.
+  const present = paths.filter((p) => existsSync(p));
+  if (!present.length) return;
+  git('add', '--', ...present);
   const staged = spawnSync('git', ['diff', '--cached', '--quiet']);
   if (staged.status === 0) {
     console.log(`  nothing to commit for "${message}"`);
@@ -892,9 +905,28 @@ async function phasePlan(provider, spec) {
     return;
   }
   say('think', 'planning features, data model and test cases');
-  const text = await chat(
+  // A local model sometimes keeps extending a list until the answer is cut off (invalid
+  // JSON): one more try, asked to stay short, before the build fails.
+  let plan = null;
+  for (let attempt = 1; attempt <= 2 && !plan; attempt++) {
+    const text = await planAnswer(provider, spec, attempt > 1);
+    try {
+      plan = parseJson(text);
+      if (!Array.isArray(plan.logic_api) || plan.logic_api.length === 0) throw new Error('plan has no logic_api');
+    } catch (e) {
+      plan = null;
+      if (attempt === 2) throw e;
+      console.log(`  » warn: the plan answer was not usable (${e.message}); asking again, shorter`);
+    }
+  }
+  await write('appnar/plan.json', `${JSON.stringify(plan, null, 2)}\n`);
+  await writePlanMarkdown(plan);
+}
+
+function planAnswer(provider, spec, short) {
+  return chat(
     provider,
-    `${rules(spec)}\nYou are planning the app. Answer with one JSON object only.`,
+    `${rules(spec)}\nYou are planning the app. Answer with one JSON object only.${short ? ' Keep every list short and every string under 160 characters; stop when the object is complete.' : ''}`,
     `${specBlock(spec)}
 
 Return JSON with exactly these keys:
@@ -910,10 +942,9 @@ Return JSON with exactly these keys:
 logic_api lists 6 to 12 PURE functions (no DOM, no storage, no Date.now inside; pass time in) that hold all business rules: validation, create/update/delete on arrays of records, filtering, sorting, totals, statistics, import/export, etc.`,
     { json: true },
   );
-  const plan = parseJson(text);
-  if (!Array.isArray(plan.logic_api) || plan.logic_api.length === 0) throw new Error('plan has no logic_api');
-  await write('appnar/plan.json', `${JSON.stringify(plan, null, 2)}\n`);
+}
 
+async function writePlanMarkdown(plan) {
   const md = `# ${plan.title}
 
 > ${plan.tagline}
@@ -1018,6 +1049,17 @@ const UI_RULES = `UI wiring rules (these are checked automatically by clicking e
 - Show/hide with the \`hidden\` attribute or one consistent CSS class that exists in styles.css.
 - Call the logic functions exactly as src/logic.js expects (types included). JSON from localStorage has no Date objects: dates come back as strings, so convert them (new Date(value)) before passing them to functions that need a Date, and store dates as ISO strings.
 - An error while the page loads stops the rest of src/app.js, so every button wired after it does nothing: always fix load errors first.`;
+
+/** What a good screen looks like: the bar is a careful product designer's, not "it works". */
+export const DESIGN_RULES = `Design quality bar (the app should look like a polished product people want to use):
+- Clear hierarchy: a header with the brand (an emoji or letter in .brand-mark), then a .page-head or .hero with a short title and one sentence on what the app does, then the main content.
+- One primary action per area (.btn-primary); everything else .btn or .btn-ghost.
+- Show useful numbers at the top when the app has them (.stats): totals, done/remaining, this week.
+- Every list/board/table has an empty state (.empty with an emoji icon, a short title, one helpful sentence and the create action).
+- Group related controls in .card blocks with a .card-head title; forms use .field labels (never placeholder-only inputs).
+- Status and categories as .badge or .chip, not plain text; completed items look completed.
+- All visible text in the app's language: friendly, specific microcopy (no "Lorem", no "Item 1").
+- It must look right 375 px wide (phones) and on desktop: no horizontal scrolling, nothing cut off, tap targets at least 40 px.`;
 
 /** The problems list for a fix prompt, with the root cause first. */
 export function problemsBlock(problems) {
@@ -1143,6 +1185,15 @@ async function phaseUi(provider, spec) {
 
   say('read', 'docs/PLAN.md and the exports of src/logic.js');
   say('think', 'designing the screen layout and styles');
+  // The design system comes ready-made (ui.css); the model composes the screen from it.
+  const kit = await import('./ui-kit.mjs').catch(() => null);
+  if (kit) await write('ui.css', kit.KIT_CSS);
+  const stylesRule = kit
+    ? `${kit.KIT_REFERENCE}
+
+${DESIGN_RULES}
+- styles.css: ONLY this app's own touches on top of ui.css: :root { --accent: ${spec.accent || '#6d5efc'}; } plus a few app-specific styles (e.g. a status colour, a layout the kit does not have). Do not restyle kit classes or redefine body/buttons/inputs. Under 80 lines.`
+    : '- styles.css: modern, clean design system with CSS custom properties, light and dark themes, comfortable spacing, rounded cards, subtle shadows, hover/focus states, smooth but reduced-motion-aware transitions, mobile-first responsive layout. Include a `[hidden] { display: none !important; }` rule. Under 260 lines.';
   // 1) Markup and styles.
   const shell = await chat(
     provider,
@@ -1150,9 +1201,9 @@ async function phaseUi(provider, spec) {
     `${specBlock(spec, plan)}
 
 Write the markup and styles.
-- index.html: complete document, lang attribute, <meta name="viewport">, <title>, <link rel="stylesheet" href="styles.css">, and <script type="module" src="src/app.js"></script>. Give every element the script will touch a unique, descriptive id. Include an empty state, a form for creating records, the list/board/table area, and a footer line "Built with AppNar".
+- index.html: complete document, lang attribute, <meta name="viewport">, <title>, ${kit ? '<link rel="stylesheet" href="ui.css"> then ' : ''}<link rel="stylesheet" href="styles.css">, and <script type="module" src="src/app.js"></script>. Give every element the script will touch a unique, descriptive id. Include an empty state, a form for creating records, the list/board/table area, and a footer line "Built with AppNar".
 - Only add buttons for features the app really has; each one will be wired up.
-- styles.css: modern, clean design system with CSS custom properties, light and dark themes, comfortable spacing, rounded cards, subtle shadows, hover/focus states, smooth but reduced-motion-aware transitions, mobile-first responsive layout. Include a \`[hidden] { display: none !important; }\` rule. Under 260 lines.
+${stylesRule}
 
 Answer with exactly two blocks:
 === FILE: index.html ===
@@ -1191,7 +1242,69 @@ Under 260 lines. Output only the JavaScript code.`,
 
   // 3) Check in a real browser and repair.
   await refineUi(provider, spec, exported, api);
-  await commit('feat: user interface', ['index.html', 'styles.css', 'src/app.js', 'appnar/report.json']);
+  // 4) Then the looks: phone and desktop, readable, tappable, nothing sticking out.
+  if (kit) await polishDesign(provider, spec, exported, kit);
+  await commit('feat: user interface', ['index.html', 'ui.css', 'styles.css', 'src/app.js', 'appnar/report.json']);
+}
+
+const MAX_DESIGN_ROUNDS = 2;
+
+/**
+ * Design polish: the page is opened on a phone and a desktop and design
+ * problems go back to the model, which may change only index.html and
+ * styles.css. If a change breaks a button, it is undone.
+ */
+async function polishDesign(provider, spec, exported, kit) {
+  const { designReview } = await import('./smoke.mjs');
+  for (let round = 1; round <= MAX_DESIGN_ROUNDS; round++) {
+    say('run', 'checking the design on a phone and on a desktop');
+    const review = await designReview('.').catch((e) => ({ skipped: String(e), problems: [] }));
+    if (review.skipped || !review.problems.length) {
+      if (!review.skipped) console.log('  design check: no problems');
+      return;
+    }
+    console.log(`  design problems; polish round ${round}:\n    ${review.problems.join('\n    ')}`);
+    await pause(provider);
+    say('think', `polishing the design (${review.problems.length} problem(s))`);
+    const before = { html: await readText('index.html'), css: await readText('styles.css') };
+    const files = await chatFiles(
+      provider,
+      rules(spec),
+      `${specBlock(spec)}
+
+A design check opened the app on a phone (390 px, light theme) and a desktop (1280 px, dark theme) and found:
+${review.problems.map((p) => `- ${p}`).join('\n')}
+
+${kit.KIT_REFERENCE}
+
+${DESIGN_RULES}
+
+Fix these by changing markup classes and styles.css. Keep EVERY id and every element src/app.js uses (it is not shown and must not need changes). ui.css is the kit: do not edit it.
+
+=== FILE: index.html ===
+${before.html}
+=== FILE: styles.css ===
+${before.css}
+
+Return styles.css in full, and index.html in full only if you changed it:
+=== FILE: styles.css ===
+(full file content here: raw code only, no markdown fences, no <code> or <pre> tags)
+=== FILE: index.html ===
+(full file content, raw code only; or omit this block)`,
+      ['styles.css', 'index.html'],
+    );
+    if (!files['styles.css'] && !files['index.html']) return;
+    for (const [path, content] of Object.entries(files)) await write(path, content);
+    say('edit', `${Object.keys(files).join(', ')} · design polish`);
+    // The looks must not cost a feature: buttons are clicked again.
+    const after = await checkUi(exported);
+    if (after.fatal.length || after.issues.length) {
+      console.log(`  » warn: the design change broke the UI (${[...after.fatal, ...after.issues][0]}); undone`);
+      await write('index.html', before.html);
+      await write('styles.css', before.css);
+      return;
+    }
+  }
 }
 
 // ───────────────────────────── change requests ─────────────────────────────
@@ -1305,8 +1418,9 @@ async function listAppFiles() {
   return out.sort();
 }
 
-function agentSystem(spec) {
+function agentSystem(spec, kit = null) {
   return `${rules(spec)}
+${kit ? `\nThis app is styled with the AppNar UI kit (ui.css, read-only). For anything about looks, use its classes and keep styles.css small:\n${kit.KIT_REFERENCE}\n\n${DESIGN_RULES}\n` : ''}
 
 You are a careful coding agent working in this app's repository. Work in small steps with these tools, ONE tool per answer:
 - list_files {}                                  → the app's files
@@ -1431,9 +1545,11 @@ export async function agentLoop(provider, spec, task, { maxSteps = AGENT_MAX_STE
     const problems = [...(tests.ok ? [] : [`unit tests fail:\n${tail(tests.output, 1500)}`]), ...check.fatal, ...check.issues];
     return { tests, check, problems };
   };
+  // Apps built with the UI kit get its reference, so looks changes use it.
+  const kit = existsSync('ui.css') ? await import('./ui-kit.mjs').catch(() => null) : null;
   for (let i = 0; i < maxSteps; i++) {
     const files = await listAppFiles();
-    const raw = await chat(provider, agentSystem(spec), agentPrompt(task, files, steps), { json: true });
+    const raw = await chat(provider, agentSystem(spec, kit), agentPrompt(task, files, steps), { json: true });
     let call;
     try {
       call = parseJson(raw);
@@ -1457,13 +1573,45 @@ export async function agentLoop(provider, spec, task, { maxSteps = AGENT_MAX_STE
 }
 
 /** Change request handled by the agent: business rules, UI and tests in one loop. */
+const LOOKS = /renk|tema|tasar[ıi]m|g[öo]r[üu]n[üu]m|g[üu]zel|modern|şık|sik\b|font|yaz[ıi] tipi|bo[şs]luk|mobil|koyu|a[çc][ıi]k|css|style|colou?r|theme|design|look|layout|spacing|dark|light|responsive|ui\b|aray[üu]z/i;
+
+/**
+ * Apps made before the UI kit get it when the owner asks about looks: ui.css
+ * is added and linked before styles.css, and styles.css loses the rules that
+ * would fight it. Returns the kit, or null.
+ */
+async function adoptKit(spec) {
+  if (!LOOKS.test(spec.change?.text ?? '')) return null;
+  const kit = await import('./ui-kit.mjs').catch(() => null);
+  if (!kit) return null;
+  if (!existsSync('ui.css')) {
+    say('write', 'ui.css · the AppNar UI kit, for a better design');
+    await write('ui.css', kit.KIT_CSS);
+    const html = await readText('index.html');
+    if (html && !/href=["']ui\.css["']/.test(html)) {
+      const link = '<link rel="stylesheet" href="ui.css">';
+      const withLink = /<link[^>]+href=["']styles\.css["'][^>]*>/.test(html) ? html.replace(/(<link[^>]+href=["']styles\.css["'][^>]*>)/, `${link}\n  $1`) : html.replace(/<\/head>/i, `  ${link}\n</head>`);
+      await write('index.html', withLink);
+    }
+    if (existsSync('styles.css')) await write('styles.css', await readText('styles.css'));
+  }
+  return kit;
+}
+
 async function agentChange(provider, spec) {
   const plan = await loadPlan().catch(() => null);
+  const kit = await adoptKit(spec);
   const task = `${changeBlock(spec)}
 ${plan?.summary ? `\nWhat the app is: ${plan.summary}` : ''}
+${kit ? '\nThis is a request about looks: rebuild the screen with the AppNar UI kit classes (ui.css is already linked; see the kit reference) and keep styles.css to the accent and app-specific touches. Keep every id src/app.js uses.\n' : ''}
 Make the requested change in this existing app, keep everything else working, and make sure the tests and the browser check pass.`;
   say('think', 'working on the request as a coding agent: read, edit, test, check in the browser');
   const r = await agentLoop(provider, spec, task);
+  if (kit) {
+    // Looks requests end with the same design check and polish as a new app.
+    await polishDesign(provider, spec, exportedNamesFromSource(await readText('src/logic.js')), kit);
+    for (const f of ['ui.css', 'index.html', 'styles.css']) r.changed.add(f);
+  }
   console.log(`  changed: ${[...r.changed].join(', ') || 'nothing'}`);
   console.log(`  agent: ${r.steps} steps${r.summary ? ` · ${r.summary}` : ''}`);
   await writeReport(spec, r.check);
@@ -1480,10 +1628,11 @@ async function changeUi(provider, spec) {
   // The desktop app's local model works as a coding agent (APPNAR_AGENT=1).
   if (process.env.APPNAR_AGENT === '1') return agentChange(provider, spec);
   const exported = exportedNamesFromSource(await readText('src/logic.js'));
-  const wantsLooks = /renk|tema|tasar[ıi]m|g[öo]r[üu]n[üu]m|font|yaz[ıi] tipi|bo[şs]luk|mobil|koyu|a[çc][ıi]k|css|style|colou?r|theme|design|look|layout|spacing|dark|light|responsive/i.test(spec.change?.text ?? '');
+  const wantsLooks = LOOKS.test(spec.change?.text ?? '');
   say('read', `index.html, src/app.js, src/logic.js${wantsLooks ? ', styles.css' : ''}`);
   say('think', 'making the requested change with the smallest edits');
   const allowed = wantsLooks ? ['src/app.js', 'index.html', 'styles.css'] : ['src/app.js', 'index.html'];
+  const kit = await adoptKit(spec);
   const files = await chatFiles(
     provider,
     rules(spec),
@@ -1492,6 +1641,7 @@ async function changeUi(provider, spec) {
 ${changeBlock(spec)}
 
 ${UI_RULES}
+${kit ? `\nThe app is styled with the AppNar UI kit (ui.css, read-only); use its classes:\n${kit.KIT_REFERENCE}\n\n${DESIGN_RULES}\n` : ''}
 
 src/logic.js exports: ${exported.join(', ')}
 
@@ -1516,7 +1666,8 @@ Allowed files: src/app.js, index.html${wantsLooks ? ', styles.css' : ''}.`,
   }
   console.log(`  changed: ${Object.keys(files).join(', ') || 'nothing'}`);
   await refineUi(provider, spec, exported, '');
-  await commit(`fix: ${changeSubject(spec)}`, ['index.html', 'styles.css', 'src/app.js', 'appnar/report.json']);
+  if (kit) await polishDesign(provider, spec, exported, kit);
+  await commit(`fix: ${changeSubject(spec)}`, ['index.html', 'ui.css', 'styles.css', 'src/app.js', 'appnar/report.json']);
 }
 
 async function changeDocs(spec) {
@@ -1648,7 +1799,7 @@ async function phaseVerify() {
   }
   await rm('dist', { recursive: true, force: true });
   await mkdir('dist', { recursive: true });
-  for (const f of ['index.html', 'styles.css', 'src']) await cp(f, `dist/${f}`, { recursive: true });
+  for (const f of ['index.html', 'ui.css', 'styles.css', 'src']) if (existsSync(f)) await cp(f, `dist/${f}`, { recursive: true });
   await writeFile('dist/.nojekyll', '');
   console.log('  site ready in dist/');
 }

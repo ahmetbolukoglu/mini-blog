@@ -1,0 +1,281 @@
+/**
+ * AppNar UI kit: the design system every generated app starts from. The
+ * model composes screens from these classes instead of writing a whole
+ * stylesheet itself (small local models write working code but plain
+ * designs); the app's own styles.css only adds its accent and a few touches.
+ *
+ * KIT_CSS is written to the app as ui.css; KIT_REFERENCE goes into the
+ * prompt. One accent colour (--accent) themes everything, in light and dark.
+ */
+
+export const KIT_CSS = `/* AppNar UI kit — ui.css (do not edit; put app-specific styles in styles.css) */
+:root {
+  --accent: #6d5efc;
+  --on-accent: #fff;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+  --bg: #f7f7f9;
+  --surface: #ffffff;
+  --surface-2: #f1f1f5;
+  --line: #e4e4ea;
+  --line-strong: #d2d2db;
+  --text: #17171c;
+  --muted: #5f5f6e;
+  --faint: #6b6b7b;
+  --good: #15803d;
+  --warn: #c2410c;
+  --bad: #c81e1e;
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-line: color-mix(in srgb, var(--accent) 35%, transparent);
+  --accent-text: color-mix(in srgb, var(--accent) 80%, black);
+  --radius: 14px;
+  --radius-s: 10px;
+  --shadow: 0 1px 2px rgb(16 16 24 / 0.05), 0 8px 24px -12px rgb(16 16 24 / 0.12);
+  --shadow-lg: 0 24px 60px -20px rgb(16 16 24 / 0.35);
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+  --gap: 16px;
+  color-scheme: light;
+}
+/* Text on the accent: black on light accents (green, amber…), white on dark ones, whatever the app's colour. */
+@supports (color: oklch(from red l c h)) {
+  :root { --on-accent: oklch(from var(--accent) clamp(0, calc((0.7 - l) * 1000), 1) 0 0); }
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e0e12; --surface: #17171d; --surface-2: #1f1f27; --line: #2a2a34; --line-strong: #3a3a47;
+    --text: #ececf1; --muted: #b4b4c2; --faint: #9696a8; --good: #4ade80; --warn: #fb923c; --bad: #f87171;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -12px rgb(0 0 0 / 0.6);
+    --accent-soft: color-mix(in srgb, var(--accent) 20%, transparent);
+    --accent-text: color-mix(in srgb, var(--accent) 45%, white);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e0e12; --surface: #17171d; --surface-2: #1f1f27; --line: #2a2a34; --line-strong: #3a3a47;
+  --text: #ececf1; --muted: #b4b4c2; --faint: #9696a8; --good: #4ade80; --warn: #fb923c; --bad: #f87171;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -12px rgb(0 0 0 / 0.6);
+  --accent-soft: color-mix(in srgb, var(--accent) 20%, transparent);
+  --accent-text: color-mix(in srgb, var(--accent) 45%, white);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; min-height: 100dvh; background: var(--bg); color: var(--text); font: 15px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, h4 { margin: 0; line-height: 1.2; letter-spacing: -0.015em; }
+h1 { font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); font-weight: 750; }
+h2 { font-size: 1.15rem; font-weight: 700; }
+h3 { font-size: 1rem; font-weight: 650; }
+p { margin: 0; }
+a { color: var(--accent-text); text-underline-offset: 3px; }
+img, svg { max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: none; box-shadow: var(--ring); }
+::selection { background: var(--accent-soft); }
+
+/* layout */
+.app { min-height: 100dvh; display: flex; flex-direction: column; }
+.app-header { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 12px; padding: 12px clamp(16px, 4vw, 32px); background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 750; font-size: 1.05rem; letter-spacing: -0.02em; }
+.brand-mark { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); font-size: 0.95rem; box-shadow: 0 6px 16px -6px var(--accent); }
+.container { width: min(1120px, 100%); margin-inline: auto; padding: clamp(16px, 4vw, 32px); display: grid; gap: 24px; }
+.container.narrow { width: min(760px, 100%); }
+/* Title and text on the left, actions on the right; works with or without a wrapping div. */
+.page-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; row-gap: 6px; align-items: end; }
+.page-head > :not(h1, h2, p, div:first-child) { grid-column: 2; grid-row: 1 / span 2; justify-self: end; display: flex; gap: 8px; flex-wrap: wrap; }
+.page-head > h1, .page-head > h2, .page-head > p, .page-head > div:first-child { grid-column: 1; }
+.page-head p { color: var(--muted); }
+@media (max-width: 560px) { .page-head { grid-template-columns: minmax(0, 1fr); } .page-head > :not(h1, h2, p, div:first-child) { grid-column: 1; grid-row: auto; justify-self: stretch; } }
+.stack { display: grid; gap: var(--gap); }
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.spacer { flex: 1; }
+.grid { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.split { display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .split { grid-template-columns: 340px minmax(0, 1fr); align-items: start; } }
+.footer { margin-top: auto; padding: 24px; text-align: center; color: var(--faint); font-size: 0.85rem; }
+
+/* surfaces */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); min-width: 0; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.card.interactive { transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
+.card.interactive:hover { transform: translateY(-2px); border-color: var(--accent-line); box-shadow: var(--shadow-lg); }
+.hero { border-radius: calc(var(--radius) + 6px); padding: clamp(20px, 4vw, 36px); background: radial-gradient(120% 140% at 0% 0%, var(--accent-soft), transparent 60%), var(--surface); border: 1px solid var(--line); }
+.muted { color: var(--muted); }
+.faint { color: var(--faint); font-size: 0.85rem; }
+.divider { height: 1px; background: var(--line); border: 0; margin: 4px 0; }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: var(--radius-s); border: 1px solid var(--line-strong); background: var(--surface); color: var(--text); font-weight: 600; cursor: pointer; transition: background 0.15s, border-color 0.15s, transform 0.05s; white-space: nowrap; }
+.btn:hover { background: var(--surface-2); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); border-color: transparent; color: var(--on-accent); box-shadow: 0 8px 20px -10px var(--accent); }
+.btn-primary:hover { background: color-mix(in srgb, var(--accent) 88%, black); }
+.btn-ghost { background: transparent; border-color: transparent; }
+.btn-ghost:hover { background: var(--surface-2); }
+.btn-danger { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 35%, transparent); background: transparent; }
+.btn-danger:hover { background: color-mix(in srgb, var(--bad) 10%, transparent); }
+.btn-sm { min-height: 32px; padding: 0 12px; font-size: 0.875rem; }
+.btn-block { width: 100%; }
+.icon-btn { width: 38px; height: 38px; display: inline-grid; place-items: center; border-radius: var(--radius-s); border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; }
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+
+/* forms */
+.form { display: grid; gap: 14px; }
+.form-row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); }
+.field { display: grid; gap: 6px; font-size: 0.9rem; font-weight: 600; }
+.field small { font-weight: 400; color: var(--faint); }
+.input, .select, .textarea { width: 100%; min-height: 42px; padding: 9px 12px; border-radius: var(--radius-s); border: 1px solid var(--line-strong); background: var(--surface); font-weight: 400; transition: border-color 0.15s, box-shadow 0.15s; }
+.textarea { min-height: 96px; resize: vertical; }
+.input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+.input::placeholder, .textarea::placeholder { color: var(--faint); }
+.check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--accent); }
+.error-text { color: var(--bad); font-size: 0.85rem; font-weight: 500; }
+.search { position: relative; }
+.search .input { padding-left: 38px; }
+.search::before { content: "⌕"; position: absolute; left: 13px; top: 50%; transform: translateY(-52%); color: var(--faint); font-size: 1.1rem; }
+
+/* data */
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.list-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s); min-width: 0; transition: border-color 0.15s; }
+.list-item:hover { border-color: var(--line-strong); }
+.list-item .grow { flex: 1; min-width: 0; }
+.list-item .title { font-weight: 600; overflow-wrap: anywhere; }
+.list-item.done .title { text-decoration: line-through; color: var(--faint); }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.table th { text-align: left; font-weight: 600; color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; padding: 12px 14px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.table td { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.table tr:last-child td { border-bottom: 0; }
+.board { display: grid; gap: 16px; grid-auto-flow: column; grid-auto-columns: minmax(260px, 1fr); overflow-x: auto; padding-bottom: 6px; }
+.column { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; display: grid; gap: 10px; align-content: start; min-height: 160px; }
+.column-head { display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 0.9rem; padding: 2px 4px; }
+.stats { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 4px; box-shadow: var(--shadow); }
+.stat-label { color: var(--muted); font-size: 0.82rem; font-weight: 600; }
+.stat-value { font-size: 1.6rem; font-weight: 750; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.progress { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.progress > span { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width 0.3s; }
+
+/* small things */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; font-size: 0.75rem; font-weight: 650; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }
+.badge.accent { background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent-line); }
+.badge.good { background: color-mix(in srgb, var(--good) 14%, transparent); color: var(--good); border-color: transparent; }
+.badge.warn { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); border-color: transparent; }
+.badge.bad { background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad); border-color: transparent; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { min-height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface); font-weight: 600; font-size: 0.875rem; cursor: pointer; }
+.chip[aria-pressed="true"], .chip.active { background: var(--accent); border-color: transparent; color: var(--on-accent); }
+.tabs { display: inline-flex; justify-self: start; max-width: 100%; overflow-x: auto; gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.tab { min-height: 34px; padding: 0 14px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-weight: 600; cursor: pointer; }
+.tab[aria-selected="true"], .tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.avatar { width: 36px; height: 36px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--accent-soft); color: var(--accent-text); font-weight: 700; flex: none; }
+.empty { display: grid; justify-items: center; gap: 8px; text-align: center; padding: 40px 20px; border: 1px dashed var(--line-strong); border-radius: var(--radius); color: var(--muted); }
+.empty-icon { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-text); font-size: 1.5rem; }
+.empty h3 { color: var(--text); }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50; padding: 12px 18px; border-radius: 12px; background: var(--text); color: var(--bg); font-weight: 600; box-shadow: var(--shadow-lg); animation: ui-rise 0.2s ease-out; max-width: calc(100% - 32px); }
+.dialog { border: 1px solid var(--line); border-radius: calc(var(--radius) + 4px); padding: 22px; background: var(--surface); color: var(--text); box-shadow: var(--shadow-lg); width: min(480px, calc(100% - 32px)); }
+.dialog::backdrop { background: rgb(10 10 14 / 0.5); backdrop-filter: blur(3px); }
+.kbd { font-family: var(--mono); font-size: 0.8rem; padding: 1px 6px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface-2); }
+@keyframes ui-rise { from { opacity: 0; transform: translate(-50%, 8px); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+@media (max-width: 560px) {
+  .btn { min-height: 44px; }
+  .page-head .btn { width: 100%; }
+  /* Phones: a list item's actions move under its text instead of squeezing it. */
+  .list-item { flex-wrap: wrap; }
+  .list-item .grow { flex-basis: calc(100% - 60px); }
+}
+`
+
+/** Class names the kit defines (".card", ".btn-primary", …). */
+export const KIT_CLASSES = new Set([...KIT_CSS.matchAll(/\.([a-z][a-z0-9-]*)/g)].map((m) => m[1]))
+/** Custom properties the kit defines; an app may set only --accent and --on-accent. */
+const KIT_VARS = new Set([...KIT_CSS.matchAll(/(--[a-z0-9-]+)\s*:/g)].map((m) => m[1]).filter((v) => v !== '--accent' && v !== '--on-accent'))
+const BASE = /^(html|body|\*|h[1-6]|p|a|button|input|select|textarea|label|ul|ol|li|main|header|footer|section|img|svg|:root)$/
+
+/** Top-level blocks of a stylesheet: [{ prelude, body }] (nested ones for @media / @supports). */
+function blocks(css) {
+  const out = []
+  let i = 0
+  while (i < css.length) {
+    const open = css.indexOf('{', i)
+    if (open < 0) break
+    let depth = 1
+    let j = open + 1
+    while (j < css.length && depth) {
+      if (css[j] === '{') depth++
+      else if (css[j] === '}') depth--
+      j++
+    }
+    out.push({ prelude: css.slice(i, open).trim(), body: css.slice(open + 1, j - 1) })
+    i = j
+  }
+  return out
+}
+
+/** A selector that only restyles the kit or the page base ("body", ".card:hover", ".btn.btn-primary"). */
+function kitOnly(selector) {
+  const parts = selector
+    .replace(/::?[a-z-]+(\([^)]*\))?/g, '')
+    .replace(/\[[^\]]*\]/g, '')
+    .split(/[\s>+~]+/)
+    .filter(Boolean)
+  return parts.every((p) => {
+    if (p.includes('#')) return false
+    const [el, ...classes] = p.split('.')
+    if (el && !BASE.test(el)) return false
+    return classes.every((c) => KIT_CLASSES.has(c))
+  })
+}
+
+/**
+ * The app's styles.css as the kit expects it: only the accent and the app's
+ * own styles. Rules that restyle kit classes or the page base and overrides
+ * of the kit's colours are removed; the model often writes them anyway, and
+ * they break the tested design (contrast, dark mode, spacing).
+ * Returns { css, removed } with the removed selectors.
+ */
+export function cleanAppStyles(css) {
+  const removed = []
+  const walk = (text) => {
+    let out = ''
+    for (const b of blocks(String(text).replace(/\/\*[\s\S]*?\*\//g, ''))) {
+      if (b.prelude.startsWith('@media') || b.prelude.startsWith('@supports') || b.prelude.startsWith('@container')) {
+        const inner = walk(b.body)
+        if (inner.trim()) out += `${b.prelude} {\n${inner}}\n\n`
+        continue
+      }
+      if (b.prelude.startsWith('@')) {
+        out += `${b.prelude} {${b.body}}\n\n`
+        continue
+      }
+      const selectors = b.prelude.split(',').map((s) => s.trim()).filter(Boolean)
+      if (selectors.length === 1 && /^:root$|^\[data-theme/.test(selectors[0])) {
+        // Keep the accent and the app's own variables, not the kit's colours.
+        const decls = b.body.split(';').map((d) => d.trim()).filter((d) => d && !KIT_VARS.has(d.split(':')[0].trim()))
+        if (decls.length) out += `${selectors[0]} {\n  ${decls.join(';\n  ')};\n}\n\n`
+        else removed.push(selectors[0])
+        continue
+      }
+      const keep = selectors.filter((s) => !kitOnly(s))
+      removed.push(...selectors.filter((s) => kitOnly(s)))
+      if (keep.length) out += `${keep.join(',\n')} {${b.body}}\n\n`
+    }
+    return out
+  }
+  const out = walk(css)
+  return { css: out.trim() ? `${out.trim()}\n` : '', removed }
+}
+
+/** What the model needs to know to use the kit (kept short for small context windows). */
+export const KIT_REFERENCE = `AppNar UI kit (already in ui.css — use these classes, do not re-create them):
+- Layout: <body class="app">, <header class="app-header"><div class="brand"><span class="brand-mark">emoji/letter</span>App name</div><span class="spacer"></span>…</header>, <main class="container"> (add "narrow" for forms/lists), .page-head (h1 + p.muted + actions), .stack (vertical gap), .row (horizontal, wraps), .spacer, .grid (responsive cards), .split (side panel + content on wide screens), <footer class="footer">.
+- Surfaces: .card (+ .card-head, .card.interactive for clickable), .hero (intro block with accent glow), .muted, .faint, .divider.
+- Buttons: .btn, .btn.btn-primary (one main action per area), .btn.btn-ghost, .btn.btn-danger, .btn-sm, .btn-block, .icon-btn (with aria-label).
+- Forms: <form class="form">, .form-row (fields side by side), <label class="field">Label <input class="input"> <small>hint</small></label>, .select, .textarea, <label class="check"><input type="checkbox"> text</label>, .error-text, <div class="search"><input class="input" type="search"></div>.
+- Data: <ul class="list"><li class="list-item"><div class="grow"><div class="title">…</div><div class="faint">…</div></div>…</li></ul> (.list-item.done for completed), <div class="table-wrap"><table class="table">, .board > .column > .column-head (kanban), .stats > .stat > .stat-label + .stat-value, <div class="progress"><span style="width:40%"></span></div>.
+- Small: .badge (.accent .good .warn .bad), .chips > button.chip[aria-pressed], .tabs > button.tab[aria-selected], .avatar, .empty > .empty-icon + h3 + p (empty states), .toast (temporary message), <dialog class="dialog"> (confirmations), .kbd.
+- Theme: one accent colour in styles.css → :root { --accent: #hex; }. Text on the accent turns black or white by itself. Light/dark follow the system automatically: do NOT add a theme toggle.`
