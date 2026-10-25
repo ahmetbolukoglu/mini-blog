@@ -33,6 +33,23 @@ const cancelPostBtn = document.getElementById('cancel-post');
 const savePostBtn = document.getElementById('save-post');
 const formTitle = document.getElementById('form-title');
 
+// Project section elements
+const projectSection = document.getElementById('project-section');
+const addProjectBtn = document.getElementById('add-project-btn');
+const projectFormContainer = document.getElementById('project-form-container');
+const projectForm = document.getElementById('project-form');
+const cancelProjectBtn = document.getElementById('cancel-project-btn');
+
+// Task section elements
+const taskSection = document.getElementById('task-section');
+const addTaskBtn = document.getElementById('add-task-btn');
+const taskFormContainer = document.getElementById('task-form-container');
+const taskForm = document.getElementById('task-form');
+const cancelTaskBtn = document.getElementById('cancel-task-btn');
+
+// Theme toggle
+const themeToggle = document.getElementById('theme-toggle');
+
 // Load data from localStorage
 function loadState() {
   try {
@@ -52,6 +69,94 @@ function loadState() {
     render();
   }
 }
+
+// Initialize the app
+function init() {
+  loadState();
+  initAllSections();
+}
+
+// Start the app
+init();
+
+// Initialize theme toggle
+function initThemeToggle() {
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-theme');
+      const isDark = document.body.classList.contains('dark-theme');
+      const icon = themeToggle.querySelector('.theme-icon');
+      icon.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('dark-theme', isDark);
+    });
+    
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('dark-theme');
+    if (savedTheme === 'true') {
+      document.body.classList.add('dark-theme');
+      const icon = themeToggle.querySelector('.theme-icon');
+      icon.textContent = '☀️';
+    }
+  }
+}
+
+// Initialize project section
+function initProjectSection() {
+  if (projectSection && addProjectBtn && projectFormContainer && projectForm && cancelProjectBtn) {
+    addProjectBtn.addEventListener('click', showProjectForm);
+    cancelProjectBtn.addEventListener('click', hideProjectForm);
+    projectForm.addEventListener('submit', saveProject);
+  }
+}
+
+// Show project form
+function showProjectForm() {
+  projectFormContainer.hidden = false;
+  projectSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Hide project form
+function hideProjectForm() {
+  projectFormContainer.hidden = true;
+  projectForm.reset();
+}
+
+// Save project
+function saveProject(e) {
+  e.preventDefault();
+  // Implementation would go here
+  hideProjectForm();
+}
+
+// Initialize task section
+function initTaskSection() {
+  if (taskSection && addTaskBtn && taskFormContainer && taskForm && cancelTaskBtn) {
+    addTaskBtn.addEventListener('click', showTaskForm);
+    cancelTaskBtn.addEventListener('click', hideTaskForm);
+    taskForm.addEventListener('submit', saveTask);
+  }
+}
+
+// Show task form
+function showTaskForm() {
+  taskFormContainer.hidden = false;
+  taskSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Hide task form
+function hideTaskForm() {
+  taskFormContainer.hidden = true;
+  taskForm.reset();
+}
+
+// Save task
+function saveTask(e) {
+  e.preventDefault();
+  // Implementation would go here
+  hideTaskForm();
+}
+
+
 
 // Initialize design feedback
 function initDesignFeedback() {
@@ -104,6 +209,13 @@ function saveState() {
   } catch (e) {
     console.error('Failed to save state:', e);
   }
+}
+
+// Initialize all sections
+function initAllSections() {
+  initProjectSection();
+  initTaskSection();
+  initThemeToggle();
 }
 
 // Render posts list
