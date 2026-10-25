@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-25 · #7
+
+- İstek: 1. Tasarımı yeniden tasarla: Modern, temiz ve kullanıcı dostu bir arayüz oluştur. 2. Hataları düzelt: 'Yeni Proje Ekle' ve 'Yeni Görev Ekle' butonlarının tıklama olaylarını düzelt. 3. Butonlara açıklayıcı isimler ve etkileşimli geri bildirim ekle. 4. CSS ile butonlara hover ve click efektleri ekle. 5. Butonların renkleri ve boyutları tutarlı olmalı.
+- Kalan sorun: 5
+
 ## 2026-10-25 · #6
 
 - İstek: Fix every problem the browser check found.
