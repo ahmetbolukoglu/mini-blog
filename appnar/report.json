@@ -1,6 +1,6 @@
 {
-  "revision": 4,
-  "checkedAt": "2026-10-25T16:34:37.082Z",
+  "revision": 5,
+  "checkedAt": "2026-10-25T16:36:25.185Z",
   "browserCheck": "12 buttons clicked",
   "issues": [
     "Clicking \"Yeni Proje Ekle\" (#add-project-btn) does nothing visible (no DOM change, dialog or download).",
