@@ -53,6 +53,43 @@ function loadState() {
   }
 }
 
+// Initialize design feedback
+function initDesignFeedback() {
+  const feedbackSection = document.getElementById('design-feedback-section');
+  const feedbackForm = document.getElementById('design-feedback-form');
+  
+  if (feedbackForm) {
+    feedbackForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(feedbackForm);
+      const feedbackData = Object.fromEntries(formData);
+      
+      // Save feedback to localStorage
+      try {
+        const feedback = localStorage.getItem('design-feedback');
+        const feedbackArray = feedback ? JSON.parse(feedback) : [];
+        feedbackArray.push({
+          ...feedbackData,
+          timestamp: new Date().toISOString()
+        });
+        localStorage.setItem('design-feedback', JSON.stringify(feedbackArray));
+        
+        // Show confirmation
+        const confirmation = document.getElementById('feedback-confirmation');
+        if (confirmation) {
+          confirmation.hidden = false;
+          setTimeout(() => {
+            confirmation.hidden = true;
+            feedbackForm.reset();
+          }, 3000);
+        }
+      } catch (error) {
+        console.error('Failed to save feedback:', error);
+      }
+    });
+  }
+}
+
 // Save data to localStorage
 function saveState() {
   try {

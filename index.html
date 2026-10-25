@@ -3,67 +3,230 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mini Blog</title>
+  <title>Proje Yönetimi</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="app-header">
-    <h1>Mini Blog</h1>
-    <p class="tagline">Kişisel yazılarınızı taslaklardan yayımlayın ve etiketleyin</p>
+  <header>
+    <h1>Proje Yönetimi</h1>
+    <button id="theme-toggle" aria-label="Gündüz/Gece temasi değiştir">
+      <span class="theme-icon">🌙</span>
+    </button>
   </header>
 
-  <main class="app-main">
-    <section class="controls-section">
-      <div class="filter-controls">
-        <div class="filter-group">
-          <label for="tag-filter">Etikete Göre Filtrele</label>
-          <select id="tag-filter" class="filter-select">
-            <option value="">Tüm Etiketler</option>
+  <main>
+    <section id="design-feedback-section" class="feedback-section">
+      <h2>Tasarım Geri Bildirimi</h2>
+      <p>Projenin tasarımını daha da iyileştirmek için lütfen aşağıdaki soruları cevaplayınız:</p>
+      
+      <form id="design-feedback-form">
+        <div class="form-group">
+          <label for="color-palette">Renk Paleti:</label>
+          <select id="color-palette" name="color-palette">
+            <option value="default">Varsayılan (Kırmızı aksan)</option>
+            <option value="blue">Mavi</option>
+            <option value="green">Yeşil</option>
+            <option value="purple">Mor</option>
           </select>
         </div>
-        <button id="new-post-btn" class="btn btn-primary">Yeni Yazı</button>
-      </div>
-    </section>
 
-    <section class="posts-section" id="posts-section">
-      <div id="empty-state" class="empty-state">
-        <p>Henüz hiç yazı yok. Yeni bir yazı oluşturmak ister misiniz?</p>
-        <button id="create-first-post" class="btn btn-secondary">Yeni Yazı Oluştur</button>
-      </div>
-      <div id="posts-container" class="posts-container"></div>
-    </section>
+        <div class="form-group">
+          <label for="typography">Tipografi:</label>
+          <select id="typography" name="typography">
+            <option value="default">Varsayılan (Sans-serif)</option>
+            <option value="serif">Serif</option>
+            <option value="mono">Monospace</option>
+          </select>
+        </div>
 
-    <section class="post-form-section" id="post-form-section" hidden>
-      <h2 id="form-title">Yazı Oluştur</h2>
-      <form id="post-form">
-        <input type="hidden" id="post-id">
         <div class="form-group">
-          <label for="post-title">Başlık</label>
-          <input type="text" id="post-title" required>
+          <label for="button-style">Buton Stilleri:</label>
+          <select id="button-style" name="button-style">
+            <option value="default">Varsayılan (Düz)</option>
+            <option value="rounded">Yuvarlak</option>
+            <option value="outlined">Çizgili</option>
+          </select>
         </div>
+
         <div class="form-group">
-          <label for="post-content">İçerik</label>
-          <textarea id="post-content" rows="10" required></textarea>
+          <label for="responsive-design">Responsive Tasarım:</label>
+          <select id="responsive-design" name="responsive-design">
+            <option value="default">Varsayılan (Mobil öncelikli)</option>
+            <option value="desktop">Masaüstü odaklı</option>
+            <option value="tablet">Tablet odaklı</option>
+          </select>
         </div>
+
         <div class="form-group">
-          <label for="post-tags">Etiketler (virgülle ayrılmış)</label>
-          <input type="text" id="post-tags" placeholder="örn: teknoloji, hayat">
+          <label for="animations">Animasyonlar:</label>
+          <select id="animations" name="animations">
+            <option value="default">Varsayılan (Minimal)</option>
+            <option value="enhanced">Gelişmiş</option>
+            <option value="none">Hiçbiri</option>
+          </select>
         </div>
-        <div class="form-group">
-          <label for="post-publish-date">Yayınlama Tarihi (isteğe bağlı)</label>
-          <input type="date" id="post-publish-date">
-        </div>
-        <div class="form-actions">
-          <button type="button" id="cancel-post" class="btn btn-secondary">İptal</button>
-          <button type="submit" id="save-post" class="btn btn-primary">Kaydet</button>
-        </div>
+
+        <button type="submit">Geri Bildirimi Gönder</button>
       </form>
+      <div id="feedback-confirmation" class="feedback-confirmation hidden" aria-live="polite">
+        Geri bildiriminiz başarıyla gönderildi!
+      </div>
     </section>
-  </main>
 
-  <footer class="app-footer">
-    <p>Built with AppNar</p>
-  </footer>
+    <section id="posts-section" class="posts-section">
+      <div class="section-header">
+        <h2>Yazılar</h2>
+        <button id="new-post-btn" class="btn-primary">Yeni Yazı Ekle</button>
+      </div>
+
+      <div class="filter-section">
+        <select id="tag-filter">
+          <option value="">Tüm Etiketler</option>
+        </select>
+      </div>
+
+      <div id="posts-container" class="posts-container"></div>
+      <div id="empty-state" class="empty-state hidden">
+        <p>Henüz hiç yazı yok. İlk yazınızı oluşturmak için yukarıdaki "Yeni Yazı Ekle" butonuna tıklayın.</p>
+        <button id="create-first-post" class="btn-primary">İlk Yazınızı Oluşturun</button>
+      </div>
+
+      <div id="post-form-section" class="post-form-section hidden">
+        <h3 id="form-title">Yazı Oluştur</h3>
+        <form id="post-form">
+          <input type="hidden" id="post-id">
+          <div class="form-group">
+            <label for="post-title">Başlık</label>
+            <input type="text" id="post-title" name="title" required>
+          </div>
+
+          <div class="form-group">
+            <label for="post-content">İçerik</label>
+            <textarea id="post-content" name="content" rows="5" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="post-tags">Etiketler (virgülle ayrılmış)</label>
+            <input type="text" id="post-tags" name="tags">
+          </div>
+
+          <div class="form-group">
+            <label for="post-publish-date">Yayın Tarihi (isteğe bağlı)</label>
+            <input type="date" id="post-publish-date" name="publishDate">
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="cancel-post">İptal</button>
+            <button type="submit" id="save-post" class="btn-primary">Kaydet</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="project-section" class="hidden">
+      <div class="section-header">
+        <h2>Projeler</h2>
+        <button id="add-project-btn" class="btn-primary">Yeni Proje Ekle</button>
+      </div>
+
+      <div id="projects-container" class="projects-container"></div>
+
+      <div id="project-form-container" class="hidden">
+        <h3 id="form-title">Yeni Proje</h3>
+        <form id="project-form">
+          <div class="form-group">
+            <label for="project-name">Proje Adı</label>
+            <input type="text" id="project-name" name="name" required>
+          </div>
+
+          <div class="form-group">
+            <label for="project-description">Açıklama</label>
+            <textarea id="project-description" name="description" rows="3"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="project-due-date">Bitiş Tarihi</label>
+            <input type="date" id="project-due-date" name="dueDate">
+          </div>
+
+          <div class="form-group">
+            <label for="project-status">Durum</label>
+            <select id="project-status" name="status">
+              <option value="pending">Beklemede</option>
+              <option value="in-progress">Devam Ediyor</option>
+              <option value="completed">Tamamlandı</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="project-priority">Öncelik</label>
+            <select id="project-priority" name="priority">
+              <option value="low">Düşük</option>
+              <option value="medium">Orta</option>
+              <option value="high">Yüksek</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="cancel-project-btn">İptal</button>
+            <button type="submit" class="btn-primary">Kaydet</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="task-section" class="hidden">
+      <div class="section-header">
+        <h2>Görevler</h2>
+        <button id="add-task-btn" class="btn-primary">Yeni Görev Ekle</button>
+      </div>
+
+      <div id="tasks-container" class="tasks-container"></div>
+
+      <div id="task-form-container" class="hidden">
+        <h3 id="task-form-title">Yeni Görev</h3>
+        <form id="task-form">
+          <div class="form-group">
+            <label for="task-name">Görev Adı</label>
+            <input type="text" id="task-name" name="name" required>
+          </div>
+
+          <div class="form-group">
+            <label for="task-description">Açıklama</label>
+            <textarea id="task-description" name="description" rows="3"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="task-project">Proje</label>
+            <select id="task-project" name="projectId">
+              <option value="">Proje Seçin</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="task-due-date">Bitiş Tarihi</label>
+            <input type="date" id="task-due-date" name="dueDate">
+          </div>
+
+          <div class="form-group">
+            <label for="task-status">Durum</label>
+            <select id="task-status" name="status">
+              <option value="pending">Beklemede</option>
+              <option value="in-progress">Devam Ediyor</option>
+              <option value="completed">Tamamlandı</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="cancel-task-btn">İptal</button>
+            <button type="submit" class="btn-primary">Kaydet</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <div id="notification" class="notification hidden" aria-live="polite"></div>
+  </main>
 
   <script type="module" src="src/app.js"></script>
 </body>

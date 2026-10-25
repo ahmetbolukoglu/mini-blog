@@ -1,6 +1,13 @@
 {
-  "revision": 1,
-  "checkedAt": "2026-10-25T15:01:02.619Z",
-  "browserCheck": "2 buttons clicked",
-  "issues": []
+  "revision": 2,
+  "checkedAt": "2026-10-25T15:19:01.457Z",
+  "browserCheck": "12 buttons clicked",
+  "issues": [
+    "Buttons in index.html that src/app.js never wires up: #theme-toggle, #add-project-btn, #cancel-project-btn, #add-task-btn, #cancel-task-btn",
+    "Clicking \"Gündüz/Gece temasi değiştir\" (#theme-toggle) does nothing visible (no DOM change, dialog or download).",
+    "Clicking \"Yeni Proje Ekle\" (#add-project-btn) does nothing visible (no DOM change, dialog or download).",
+    "Clicking \"İptal\" (#cancel-project-btn) does nothing visible (no DOM change, dialog or download).",
+    "Clicking \"Yeni Görev Ekle\" (#add-task-btn) does nothing visible (no DOM change, dialog or download).",
+    "Clicking \"İptal\" (#cancel-task-btn) does nothing visible (no DOM change, dialog or download)."
+  ]
 }
