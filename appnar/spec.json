@@ -14,15 +14,11 @@
   ],
   "language": "tr",
   "accent": "#f87171",
-  "revision": 6,
-  "requestedAt": "2026-10-25T21:21:33.786Z",
+  "revision": 7,
+  "requestedAt": "2026-10-25T21:52:25.251Z",
   "keyEndpoint": "https://wcsajvthqoyrircwlvob.supabase.co/functions/v1/ai-key",
   "engine": "local",
   "change": {
-    "text": "Fix every problem the browser check found.",
-    "issues": [
-      "Clicking \"Yeni Proje Ekle\" (#add-project-btn) does nothing visible (no DOM change, dialog or download).",
-      "Clicking \"Yeni Görev Ekle\" (#add-task-btn) does nothing visible (no DOM change, dialog or download)."
-    ]
+    "text": "1. Tasarımı yeniden tasarla: Modern, temiz ve kullanıcı dostu bir arayüz oluştur. 2. Hataları düzelt: 'Yeni Proje Ekle' ve 'Yeni Görev Ekle' butonlarının tıklama olaylarını düzelt. 3. Butonlara açıklayıcı isimler ve etkileşimli geri bildirim ekle. 4. CSS ile butonlara hover ve click efektleri ekle. 5. Butonların renkleri ve boyutları tutarlı olmalı."
   }
 }

@@ -701,6 +701,47 @@ export function idHelpers(appJs) {
 }
 
 /** Element ids the script looks up that the HTML does not define (incl. via `$('id')` helpers). */
+/**
+ * Two ways of hiding mixed up, a trap small models fall into (and cannot find
+ * from "the button does nothing"): index.html hides with class="hidden" but
+ * the stylesheets have no .hidden rule (so nothing is hidden), while
+ * src/app.js shows and hides with the `hidden` property (which then changes
+ * nothing). When app.js only uses the property, class="hidden" becomes the
+ * hidden attribute; otherwise the mix is explained to the model.
+ * Returns { html, fixed: ids, problems: lines }.
+ */
+export function fixHiddenMismatch(html, css, appJs) {
+  const usesProperty = /\.hidden\s*=(?!=)/.test(appJs) || /(setAttribute|removeAttribute|toggleAttribute)\(\s*['"]hidden['"]/.test(appJs);
+  const usesClass = /classList\.(add|remove|toggle|contains|replace)\([^)]*['"]hidden['"]/.test(appJs) || /className\s*[+=]/.test(appJs);
+  const hasHiddenRule = /(^|[\s,}])\.hidden\s*[,{:]/m.test(css);
+  const fixed = [];
+  const problems = [];
+  const tagged = [...html.matchAll(/<([a-z][a-z0-9-]*)([^>]*?)\sclass=(["'])([^"']*)\3([^>]*)>/gi)].filter((m) => m[4].split(/\s+/).includes('hidden'));
+  if (!tagged.length || !usesProperty) return { html, fixed, problems };
+  if (!usesClass && !hasHiddenRule) {
+    // Which elements app.js ever shows (`x.hidden = false` on the variable holding #id).
+    const shown = new Set();
+    for (const m of appJs.matchAll(/(?:const|let|var)\s+(\w+)\s*=\s*document\.(?:getElementById\(\s*['"]([\w-]+)['"]|querySelector\(\s*['"]#([\w-]+)['"])/g)) {
+      if (new RegExp(`\\b${m[1]}\\.hidden\\s*=\\s*(false|!)`).test(appJs) || new RegExp(`\\b${m[1]}\\.hidden\\s*=\\s*[^;]*\\?`).test(appJs)) shown.add(m[2] ?? m[3]);
+    }
+    for (const m of appJs.matchAll(/getElementById\(\s*['"]([\w-]+)['"]\s*\)\.hidden\s*=\s*(false|!)/g)) shown.add(m[1]);
+    const out = html.replace(/<([a-z][a-z0-9-]*)([^>]*?)\sclass=(["'])([^"']*)\3([^>]*)>/gi, (whole, tag, before, q, classes, after) => {
+      const list = classes.split(/\s+/).filter(Boolean);
+      if (!list.includes('hidden')) return whole;
+      const rest = list.filter((c) => c !== 'hidden');
+      const id = `${before}${after}`.match(/\sid=["']([^"']+)["']/)?.[1];
+      fixed.push(id ?? tag);
+      // Shown later by app.js: starts hidden. Never shown: stays visible, as it is today (it held features).
+      const hide = id && shown.has(id) && !/\shidden(\s|=|>|$)/.test(`${before} ${after}`);
+      return `<${tag}${before}${rest.length ? ` class=${q}${rest.join(' ')}${q}` : ''}${hide ? ' hidden' : ''}${after}>`;
+    });
+    return { html: out, fixed, problems };
+  }
+  const ids = tagged.map((m) => `${m[2]}${m[5]}`.match(/\sid=["']([^"']+)["']/)?.[1]).filter(Boolean);
+  problems.push(`index.html hides ${ids.length ? ids.map((i) => `#${i}`).join(', ') : 'elements'} with class="hidden", but src/app.js shows/hides with the \`hidden\` property, so clicking changes nothing. Use ONE way: the hidden attribute in index.html and \`el.hidden = true/false\` in src/app.js.`);
+  return { html, fixed, problems };
+}
+
 export function missingIds(appJs, html) {
   const defined = definedIds(html);
   const used = new Set();
@@ -1082,7 +1123,14 @@ async function checkUi(exported) {
   if (syntax) fatal.push(`Syntax error in src/app.js:\n${syntax}`);
   const unknown = importedNames(appJs).filter((n) => !exported.includes(n));
   if (unknown.length) fatal.push(`src/app.js imports names that src/logic.js does not export: ${unknown.join(', ')}`);
-  const missing = missingIds(appJs, html);
+  // A mechanical trap is fixed here instead of asking the model (see fixHiddenMismatch).
+  const hidden = fixHiddenMismatch(html, `${await readText('ui.css')}\n${await readText('styles.css')}`, appJs);
+  if (hidden.fixed.length) {
+    console.log(`  index.html: class="hidden" turned into the hidden attribute (${hidden.fixed.map((i) => `#${i}`).join(', ')}) to match src/app.js`);
+    await write('index.html', hidden.html);
+  }
+  issues.push(...hidden.problems);
+  const missing = missingIds(appJs, hidden.html);
   if (missing.length) issues.push(`src/app.js looks up ids that index.html does not have: ${missing.map((i) => `#${i}`).join(', ')}`);
   const unwired = unwiredButtons(appJs, html);
   if (unwired.length) issues.push(`Buttons in index.html that src/app.js never wires up: ${unwired.map((i) => `#${i}`).join(', ')}`);
@@ -1621,7 +1669,8 @@ Make the requested change in this existing app, keep everything else working, an
     throw new Error(`unit tests still fail after fix rounds${cause ? ` (${cause})` : ''}`);
   }
   if (r.check.fatal.length) throw new Error(`src/app.js still has problems:\n${r.check.fatal.join('\n')}`);
-  await commit(`fix: ${changeSubject(spec)}`, [...r.changed, 'appnar/report.json']);
+  // index.html too: the browser check may have fixed it mechanically (fixHiddenMismatch).
+  await commit(`fix: ${changeSubject(spec)}`, [...new Set([...r.changed, 'index.html']), 'appnar/report.json']);
 }
 
 async function changeUi(provider, spec) {
