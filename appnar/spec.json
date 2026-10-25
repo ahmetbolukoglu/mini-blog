@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "name": "Mini Blog",
+  "slug": "mini-blog",
+  "category": "content",
+  "description": "Taslak ve yayın olarak yönetilen, etiketli kişisel blog uygulaması. Yazıları düzenlemek, etiketlemek ve yayınlamak için idealdir.",
+  "features": [
+    "Yazı taslakları ve yayın yönetimi",
+    "Etiketleme ve kategori yönetimi",
+    "Kişisel blog için basit arayüz",
+    "Yazı ekleme, düzenleme ve silme",
+    "Etiketlere göre filtreleme",
+    "Yazıların yayın tarihi yönetimi"
+  ],
+  "language": "tr",
+  "accent": "#f87171",
+  "revision": 1,
+  "requestedAt": "2026-10-25T06:35:08.870Z",
+  "keyEndpoint": "https://wcsajvthqoyrircwlvob.supabase.co/functions/v1/ai-key",
+  "engine": "local"
+}

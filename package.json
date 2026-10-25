@@ -1,0 +1,11 @@
+{
+  "name": "mini-blog",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Taslak ve yayın olarak yönetilen, etiketli kişisel blog uygulaması. Yazıları düzenlemek, etiketlemek ve yayınlamak için idealdir.",
+  "scripts": {
+    "test": "node --test \"tests/*.test.js\""
+  },
+  "license": "MIT"
+}
