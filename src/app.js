@@ -112,16 +112,16 @@ function initProjectSection() {
   }
 }
 
-// Show project form
-function showProjectForm() {
-  projectFormContainer.hidden = false;
-  projectSection.scrollIntoView({ behavior: 'smooth' });
-}
-
 // Hide project form
 function hideProjectForm() {
   projectFormContainer.hidden = true;
   projectForm.reset();
+}
+
+// Show project form
+function showProjectForm() {
+  projectFormContainer.hidden = false;
+  projectSection.scrollIntoView({ behavior: 'smooth' });
 }
 
 // Save project
@@ -153,16 +153,16 @@ function initTaskSection() {
   }
 }
 
-// Show task form
-function showTaskForm() {
-  taskFormContainer.hidden = false;
-  taskSection.scrollIntoView({ behavior: 'smooth' });
-}
-
 // Hide task form
 function hideTaskForm() {
   taskFormContainer.hidden = true;
   taskForm.reset();
+}
+
+// Show task form
+function showTaskForm() {
+  taskFormContainer.hidden = false;
+  taskSection.scrollIntoView({ behavior: 'smooth' });
 }
 
 // Save task
@@ -322,6 +322,7 @@ function showCreateForm() {
   postForm.reset();
   postIdInput.value = '';
   postTitleInput.focus();
+  postsSection.scrollIntoView({ behavior: 'smooth' });
 }
 
 // Show post form for editing existing post
