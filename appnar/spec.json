@@ -14,11 +14,14 @@
   ],
   "language": "tr",
   "accent": "#f87171",
-  "revision": 12,
-  "requestedAt": "2026-10-26T00:51:57.209Z",
+  "revision": 13,
+  "requestedAt": "2026-10-26T00:58:20.198Z",
   "keyEndpoint": "https://wcsajvthqoyrircwlvob.supabase.co/functions/v1/ai-key",
   "engine": "local",
   "change": {
-    "text": "lan söylüyorum ya css ler yok herhalde düzelt tasarımı!"
+    "text": "Fix every problem the browser check found.",
+    "issues": [
+      "Clicking \"İptal\" (#cancel-task-btn) does nothing visible (no DOM change, dialog or download)."
+    ]
   }
 }
