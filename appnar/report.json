@@ -1,12 +1,15 @@
 {
-  "revision": 7,
-  "checkedAt": "2026-10-25T21:54:51.581Z",
+  "revision": 9,
+  "checkedAt": "2026-10-26T00:37:56.832Z",
   "browserCheck": "8 buttons clicked",
   "issues": [
-    "On page load: Uncaught ReferenceError: initPostSection is not defined (at initAllSections src/app.js:220 ← init src/app.js:76 ← src/app.js:80)",
-    "Clicking \"Kaydet\" throws: Uncaught ReferenceError: initPostSection is not defined (at initAllSections src/app.js:220 ← init src/app.js:76 ← src/app.js:80)",
-    "Clicking \"Yeni Yazı Ekle\" (#new-post-btn) does nothing visible (no DOM change, dialog or download).",
-    "Clicking \"İlk Yazınızı Oluşturun\" (#create-first-post) does nothing visible (no DOM change, dialog or download).",
     "Clicking \"İptal\" (#cancel-task-btn) does nothing visible (no DOM change, dialog or download)."
+  ],
+  "summary": null,
+  "changed": [
+    "src/app.js",
+    "ui.css",
+    "index.html",
+    "styles.css"
   ]
 }

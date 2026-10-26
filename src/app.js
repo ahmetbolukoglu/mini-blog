@@ -220,6 +220,17 @@ function initAllSections() {
   initPostSection();
 }
 
+// Initialize post section
+function initPostSection() {
+  if (postsSection && postFormSection && postForm && cancelPostBtn && savePostBtn && formTitle) {
+    newPostBtn.addEventListener('click', showCreateForm);
+    createFirstPostBtn.addEventListener('click', showCreateForm);
+    cancelPostBtn.addEventListener('click', hideForm);
+    savePostBtn.addEventListener('click', savePost);
+    postForm.addEventListener('submit', savePost);
+  }
+}
+
 // Render posts list
 function renderPosts() {
   if (posts.length === 0) {
