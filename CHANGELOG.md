@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-26 · #13
+
+- İstek: Fix every problem the browser check found.
+- Otomatik kontrolün bulduğu 1 sorun ele alındı
+- Kalan sorun: 1
+
 ## 2026-10-26 · #12
 
 - İstek: lan söylüyorum ya css ler yok herhalde düzelt tasarımı!
