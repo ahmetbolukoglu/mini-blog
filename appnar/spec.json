@@ -14,14 +14,11 @@
   ],
   "language": "tr",
   "accent": "#f87171",
-  "revision": 13,
-  "requestedAt": "2026-10-26T00:58:20.198Z",
+  "revision": 14,
+  "requestedAt": "2026-10-26T01:14:58.267Z",
   "keyEndpoint": "https://wcsajvthqoyrircwlvob.supabase.co/functions/v1/ai-key",
   "engine": "local",
   "change": {
-    "text": "Fix every problem the browser check found.",
-    "issues": [
-      "Clicking \"İptal\" (#cancel-task-btn) does nothing visible (no DOM change, dialog or download)."
-    ]
+    "text": "1. Tarihi 2023'ten 2026'ya güncelle.\n2. Footer altında fazlalık olan öğeleri kaldır."
   }
 }
