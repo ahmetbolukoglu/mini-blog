@@ -1,6 +1,6 @@
 {
-  "revision": 9,
-  "checkedAt": "2026-10-26T00:37:56.832Z",
+  "revision": 11,
+  "checkedAt": "2026-10-26T00:41:31.186Z",
   "browserCheck": "8 buttons clicked",
   "issues": [
     "Clicking \"İptal\" (#cancel-task-btn) does nothing visible (no DOM change, dialog or download)."
@@ -8,8 +8,8 @@
   "summary": null,
   "changed": [
     "src/app.js",
-    "ui.css",
     "index.html",
+    "ui.css",
     "styles.css"
   ]
 }
