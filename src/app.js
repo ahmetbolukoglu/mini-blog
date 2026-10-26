@@ -259,6 +259,29 @@ function initAllSections() {
   if (addTaskBtn) {
     addTaskBtn.addEventListener('click', showTaskForm);
   }
+  
+  // Ensure theme toggle works
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-theme');
+      const isDark = document.body.classList.contains('dark-theme');
+      const icon = themeToggle.querySelector('.theme-icon');
+      if (icon) {
+        icon.textContent = isDark ? '☀️' : '🌙';
+      }
+      localStorage.setItem('dark-theme', isDark);
+    });
+    
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('dark-theme');
+    if (savedTheme === 'true') {
+      document.body.classList.add('dark-theme');
+      const icon = themeToggle.querySelector('.theme-icon');
+      if (icon) {
+        icon.textContent = '☀️';
+      }
+    }
+  }
 }
 
 // Initialize post section
@@ -434,4 +457,4 @@ tagFilter.addEventListener('change', (e) => {
 });
 
 // Initialize
-loadState();
+init();
