@@ -1207,7 +1207,8 @@ Fix every problem without removing features. Return src/app.js in full, and inde
 }
 
 /** appnar/report.json: what the last browser check found (AppNar shows it and offers a fix). */
-async function writeReport(spec, check) {
+/** appnar/report.json: the last checks, plus (for a change) what the agent says it did and the files it changed. */
+async function writeReport(spec, check, work = null) {
   await write(
     'appnar/report.json',
     `${JSON.stringify(
@@ -1216,6 +1217,7 @@ async function writeReport(spec, check) {
         checkedAt: new Date().toISOString(),
         browserCheck: check.smoke ? (check.smoke.skipped ? `skipped: ${check.smoke.skipped}` : `${check.smoke.checked} buttons clicked`) : 'not run',
         issues: check.issues,
+        ...(work ? { summary: work.summary || null, changed: [...work.changed] } : {}),
       },
       null,
       2,
@@ -1472,7 +1474,7 @@ ${kit ? `\nThis app is styled with the AppNar UI kit (ui.css, read-only). For an
 
 You are a careful coding agent working in this app's repository. Work in small steps with these tools, ONE tool per answer:
 - list_files {}                                  → the app's files
-- read_file {"path"}                             → a file's content
+- read_file {"path", "start"?, "end"?}           → a file's content; with start/end only those lines, numbered
 - edit_file {"path", "find", "replace"}          → replace ONE exact occurrence of "find" (copy it from read_file, with its spaces); use this for changes
 - write_file {"path", "content"}                 → create a new file or fully replace a small one
 - run_tests {}                                   → node --test tests/*.test.js
@@ -1496,7 +1498,10 @@ ${UI_RULES}`;
 export function agentPrompt(task, files, steps, maxChars = 42_000) {
   const shown = steps.map((s, i) => {
     const recent = i >= steps.length - 6;
-    const result = recent ? s.result.slice(0, 7000) : `${s.result.slice(0, 240)}${s.result.length > 240 ? ' …(older result shortened)' : ''}`;
+    // The latest read of each file is shown whole: cut at 7000 characters the model never saw the end
+    // of a 380-line app.js and kept reading it again.
+    const latestRead = s.call.tool === 'read_file' && !steps.slice(i + 1).some((x) => x.call.tool === 'read_file' && x.call.args?.path === s.call.args?.path && x.call.args?.start == null);
+    const result = recent || latestRead ? s.result.slice(0, latestRead ? 20_000 : 7000) : `${s.result.slice(0, 240)}${s.result.length > 240 ? ' …(older result shortened)' : ''}`;
     const args = { ...(s.call.args ?? {}) };
     // Old edits/writes: the code itself is not needed again.
     if (!recent) for (const k of ['content', 'find', 'replace']) if (typeof args[k] === 'string' && args[k].length > 200) args[k] = `${args[k].slice(0, 200)}…`;
@@ -1526,9 +1531,18 @@ async function agentTool(call, state) {
       const p = agentPath(args.path);
       if (!p) return `error: "${args.path}" is not an allowed path`;
       if (!existsSync(p)) return `error: ${p} does not exist`;
-      say('read', p);
       const text = await readText(p);
-      return `${p} (${text.split('\n').length} lines):\n${text.slice(0, 20_000)}${text.length > 20_000 ? '\n…(truncated)' : ''}`;
+      const lines = text.split('\n');
+      // A line range ("start"/"end", 1-based) with line numbers, so the model can look at the exact place.
+      if (args.start != null || args.end != null) {
+        const from = Math.max(1, Number(args.start) || 1);
+        const to = Math.min(lines.length, Number(args.end) || from + 80);
+        say('read', `${p} · lines ${from}–${to}`);
+        return `${p} lines ${from}-${to} of ${lines.length}:\n${lines.slice(from - 1, to).map((l, i) => `${from + i}| ${l}`).join('\n')}`;
+      }
+      say('read', p);
+      const shown = text.slice(0, 20_000);
+      return `${p} (${lines.length} lines):\n${shown}${text.length > 20_000 ? `\n…(truncated after line ${shown.split('\n').length}; use read_file with "start" to see the rest)` : ''}`;
     }
     case 'edit_file': {
       const p = agentPath(args.path);
@@ -1614,6 +1628,18 @@ export async function agentLoop(provider, spec, task, { maxSteps = AGENT_MAX_STE
       steps.push({ call, result: `Not done yet — the checks found:\n${v.problems.map((p) => `- ${p}`).join('\n')}\nFix these, then call done again.` });
       continue;
     }
+    // Doing the very same thing again (a small model re-reads a file it cannot "see" any more):
+    // not run again; the model is told where the result is and what to do instead.
+    // Repeating is fine once a file changed in between (re-read after an edit, re-test after a fix).
+    const key = JSON.stringify([call.tool, call.args ?? {}]);
+    const twinAt = steps.findLastIndex((s, k) => k >= steps.length - 4 && JSON.stringify([s.call.tool, s.call.args ?? {}]) === key);
+    const editedSince = twinAt >= 0 && steps.slice(twinAt + 1).some((s) => ['edit_file', 'write_file'].includes(s.call.tool) && !String(s.result).startsWith('error'));
+    if (twinAt >= 0 && !editedSince) {
+      const n = twinAt + 1;
+      console.log(`  » warn: the agent repeated step #${n} (${call.tool}); asked to move on`);
+      steps.push({ call, result: `error: you already did exactly this in step #${n}; its result is above and has not changed. Do NOT repeat it. Take the next step: if you found the problem, fix it now with edit_file (or write_file); if you need other lines, use read_file with "start" and "end".` });
+      continue;
+    }
     steps.push({ call, result: await agentTool(call, state) });
   }
   console.log(`  » warn: the agent used all ${maxSteps} steps`);
@@ -1662,7 +1688,7 @@ Make the requested change in this existing app, keep everything else working, an
   }
   console.log(`  changed: ${[...r.changed].join(', ') || 'nothing'}`);
   console.log(`  agent: ${r.steps} steps${r.summary ? ` · ${r.summary}` : ''}`);
-  await writeReport(spec, r.check);
+  await writeReport(spec, r.check, r);
   if (!r.tests.ok) {
     console.error(tail(r.tests.output, 4000));
     const cause = firstError(r.tests.output);
