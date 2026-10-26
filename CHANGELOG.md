@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-26 · #18
+
+- İstek: Fix every problem the browser check found.
+- Otomatik kontrolün bulduğu 4 sorun ele alındı
+- Kalan sorun: 4
+
 ## 2026-10-26 · #17
 
 - İstek: Fix every problem the browser check found.
