@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-26 · #14
+
+- İstek: 1. Tarihi 2023'ten 2026'ya güncelle. 2. Footer altında fazlalık olan öğeleri kaldır.
+- Kalan sorun: 4
+
 ## 2026-10-26 · #13
 
 - İstek: Fix every problem the browser check found.
