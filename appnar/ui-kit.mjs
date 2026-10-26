@@ -130,6 +130,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .textarea { min-height: 96px; resize: vertical; }
 .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
 .input::placeholder, .textarea::placeholder { color: var(--faint); }
+/* controls the model left without a kit class still look designed; :where keeps them easy to override */
+:where(.app) :where(button:not([class])) { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: var(--radius-s); border: 1px solid var(--line-strong); background: var(--surface); font-weight: 600; cursor: pointer; }
+:where(.app) :where(button:not([class]):hover) { background: var(--surface-2); }
+:where(.app) :where(input:not([class]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]), select:not([class]), textarea:not([class])) { width: 100%; min-height: 42px; padding: 9px 12px; border-radius: var(--radius-s); border: 1px solid var(--line-strong); background: var(--surface); }
+:where(.app) :where(textarea:not([class])) { min-height: 96px; resize: vertical; }
+:where(.app) :where(input:not([class]), select:not([class]), textarea:not([class])):focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
 .check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .check input { width: 18px; height: 18px; accent-color: var(--accent); }
 .error-text { color: var(--bad); font-size: 0.85rem; font-weight: 500; }

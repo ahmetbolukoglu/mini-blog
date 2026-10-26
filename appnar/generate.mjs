@@ -879,9 +879,13 @@ function runTests() {
   return { ok: r.status === 0, output: `${r.stdout ?? ''}\n${r.stderr ?? ''}`.trim() };
 }
 
-function checkSyntax(path) {
-  const r = spawnSync(process.execPath, ['--check', path], { encoding: 'utf8' });
-  return r.status === 0 ? null : (r.stderr || r.stdout || 'syntax error').slice(0, 1500);
+/**
+ * App files are ES modules. `node --check file.js` lets a broken file that uses import/export pass
+ * (Node 24 guesses the module type and gives up quietly), so the source is checked as a module.
+ */
+export function checkSyntax(path) {
+  const r = spawnSync(process.execPath, ['--input-type=module', '--check'], { input: readFileSync(path, 'utf8'), encoding: 'utf8' });
+  return r.status === 0 ? null : (r.stderr || r.stdout || 'syntax error').replaceAll('[stdin]', path).slice(0, 1500);
 }
 
 const tail = (s, n) => (s.length > n ? `…${s.slice(-n)}` : s);
@@ -1521,7 +1525,7 @@ ${files.join('\n')}
 ${steps.length ? `STEPS SO FAR\n${history}\n\nNext step (JSON):` : 'First step (JSON):'}`;
 }
 
-async function agentTool(call, state) {
+export async function agentTool(call, state) {
   const args = call.args ?? {};
   switch (call.tool) {
     case 'list_files':
@@ -1548,23 +1552,40 @@ async function agentTool(call, state) {
       const p = agentPath(args.path);
       if (!p) return `error: "${args.path}" is not an allowed path`;
       if (!existsSync(p)) return `error: ${p} does not exist; use write_file to create it`;
-      const r = applyEdit(await readText(p), args.find, args.replace);
+      const before = await readText(p);
+      const r = applyEdit(before, args.find, args.replace);
       if (r.error) return `error: ${r.error}`;
+      const js = /\.m?js$/.test(p);
+      const wasOk = js && !checkSyntax(p);
       await write(p, r.text);
+      const syntax = js ? checkSyntax(p) : null;
+      // An edit that breaks a working file is undone: broken edits piling up is how small models end in a mess.
+      if (syntax && wasOk) {
+        await write(p, before);
+        say('warn', `${p} · the edit broke the code; undone`);
+        return `error: your edit made the code invalid, so it was undone (the file is as before):\n${syntax}\nSend a corrected edit: "replace" must be complete, valid code (balanced braces, quotes and parentheses).`;
+      }
       state.changed.add(p);
       say('edit', `${p} · line ${r.line}`);
-      const syntax = /\.m?js$/.test(p) ? checkSyntax(p) : null;
-      return syntax ? `edited ${p} at line ${r.line}, but it now has a syntax error:\n${syntax}` : `edited ${p} at line ${r.line}`;
+      return syntax ? `edited ${p} at line ${r.line}, but it still has a syntax error:\n${syntax}` : `edited ${p} at line ${r.line}`;
     }
     case 'write_file': {
       const p = agentPath(args.path);
       if (!p) return `error: "${args.path}" is not an allowed path`;
       if (typeof args.content !== 'string' || !args.content.trim()) return 'error: args.content is empty';
       const content = stripFence(args.content, p);
+      const js = /\.m?js$/.test(p);
+      const before = existsSync(p) ? await readText(p) : null;
+      const wasOk = js && before != null && !checkSyntax(p);
       await write(p, content);
+      const syntax = js ? checkSyntax(p) : null;
+      if (syntax && wasOk) {
+        await write(p, before);
+        say('warn', `${p} · the new version had a syntax error; the old one is kept`);
+        return `error: the file you wrote is not valid code, so the previous version was kept:\n${syntax}\nWrite it again complete and valid, or use edit_file for a smaller change.`;
+      }
       state.changed.add(p);
       say('write', `${p} · ${content.split('\n').length} lines`);
-      const syntax = /\.m?js$/.test(p) ? checkSyntax(p) : null;
       return syntax ? `wrote ${p}, but it has a syntax error:\n${syntax}` : `wrote ${p} (${content.split('\n').length} lines)`;
     }
     case 'run_tests': {
@@ -1647,6 +1668,12 @@ export async function agentLoop(provider, spec, task, { maxSteps = AGENT_MAX_STE
 }
 
 /** Change request handled by the agent: business rules, UI and tests in one loop. */
+/**
+ * A looks request ("tasarımı düzelt", "responsive yap") is about how the existing screens look.
+ * Small models tend to turn it into a feature (a "design feedback" form with colour and font pickers).
+ */
+const LOOKS_TASK = `This is a request about how the app LOOKS, not a new feature. Restyle the EXISTING screens with the AppNar UI kit classes (ui.css is linked; see the kit reference): layout, spacing, cards, buttons, forms, lists, empty states, phone and desktop widths. Do NOT add forms, settings, pickers or sections about design, colours, fonts or themes, and no theme toggle; remove such sections if an earlier change added them. Keep every feature and every id src/app.js uses.`;
+
 const LOOKS = /renk|tema|tasar[ıi]m|g[öo]r[üu]n[üu]m|g[üu]zel|modern|şık|sik\b|font|yaz[ıi] tipi|bo[şs]luk|mobil|koyu|a[çc][ıi]k|css|style|colou?r|theme|design|look|layout|spacing|dark|light|responsive|ui\b|aray[üu]z/i;
 
 /**
@@ -1677,7 +1704,7 @@ async function agentChange(provider, spec) {
   const kit = await adoptKit(spec);
   const task = `${changeBlock(spec)}
 ${plan?.summary ? `\nWhat the app is: ${plan.summary}` : ''}
-${kit ? '\nThis is a request about looks: rebuild the screen with the AppNar UI kit classes (ui.css is already linked; see the kit reference) and keep styles.css to the accent and app-specific touches. Keep every id src/app.js uses.\n' : ''}
+${kit ? `\n${LOOKS_TASK}\n` : ''}
 Make the requested change in this existing app, keep everything else working, and make sure the tests and the browser check pass.`;
   say('think', 'working on the request as a coding agent: read, edit, test, check in the browser');
   const r = await agentLoop(provider, spec, task);
@@ -1716,7 +1743,7 @@ async function changeUi(provider, spec) {
 ${changeBlock(spec)}
 
 ${UI_RULES}
-${kit ? `\nThe app is styled with the AppNar UI kit (ui.css, read-only); use its classes:\n${kit.KIT_REFERENCE}\n\n${DESIGN_RULES}\n` : ''}
+${kit ? `\nThe app is styled with the AppNar UI kit (ui.css, read-only); use its classes:\n${kit.KIT_REFERENCE}\n\n${DESIGN_RULES}\n\n${LOOKS_TASK}\n` : ''}
 
 src/logic.js exports: ${exported.join(', ')}
 

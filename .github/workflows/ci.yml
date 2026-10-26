@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: 22
       - name: Syntax check
-        run: for f in src/*.js; do if [ -f "$f" ]; then node --check "$f"; fi; done
+        # Checked as ES modules: `node --check file.js` lets a broken file with import/export pass.
+        run: for f in src/*.js; do if [ -f "$f" ]; then echo "$f"; node --input-type=module --check < "$f"; fi; done
       - name: Unit tests
         run: if ls tests/*.test.js >/dev/null 2>&1; then node --test "tests/*.test.js"; else echo "no tests yet"; fi

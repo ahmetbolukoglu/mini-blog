@@ -6,7 +6,7 @@ name: Live demo
 on:
   push:
     branches: [main]
-    paths: [index.html, styles.css, 'src/**']
+    paths: [index.html, ui.css, styles.css, 'src/**']
   workflow_dispatch:
 
 concurrency:
@@ -32,6 +32,8 @@ jobs:
         run: |
           mkdir -p dist
           cp index.html dist/
+          # ui.css: the AppNar UI kit the page is styled with (without it the demo has no design).
+          [ -f ui.css ] && cp ui.css dist/
           [ -f styles.css ] && cp styles.css dist/
           [ -d src ] && cp -r src dist/
           touch dist/.nojekyll
