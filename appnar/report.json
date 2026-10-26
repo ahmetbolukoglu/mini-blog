@@ -1,12 +1,16 @@
 {
-  "revision": 13,
-  "checkedAt": "2026-10-26T01:00:03.655Z",
-  "browserCheck": "8 buttons clicked",
+  "revision": 14,
+  "checkedAt": "2026-10-26T01:16:19.251Z",
+  "browserCheck": "5 buttons clicked",
   "issues": [
-    "Clicking \"İptal\" (#cancel-task-btn) does nothing visible (no DOM change, dialog or download)."
+    "Clicking \"Gündüz/Gece temasi değiştir\" (#theme-toggle) does nothing visible (no DOM change, dialog or download).",
+    "Clicking \"Yeni Yazı Ekle\" (#new-post-btn) does nothing visible (no DOM change, dialog or download).",
+    "Clicking \"Yeni proje ekle\" (#add-project-btn) does nothing visible (no DOM change, dialog or download).",
+    "Clicking \"Yeni Görev Ekle\" (#add-task-btn) does nothing visible (no DOM change, dialog or download)."
   ],
   "summary": null,
   "changed": [
+    "index.html",
     "src/app.js"
   ]
 }

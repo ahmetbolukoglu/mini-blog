@@ -79,6 +79,9 @@ function init() {
 // Start the app
 init();
 
+// Initialize all sections
+initAllSections();
+
 // Initialize theme toggle
 function initThemeToggle() {
   if (themeToggle) {
