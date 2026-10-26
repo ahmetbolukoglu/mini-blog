@@ -17,10 +17,10 @@
   </header>
 
   <main class="container">
-    <section id="design-feedback-section" class="feedback-section">
-      <div class="page-head">
+    <section id="design-feedback-section" class="feedback-section card">
+      <div class="card-head">
         <h1>Tasarım Geri Bildirimi</h1>
-        <p>Projenin tasarımını daha da iyileştirmek için lütfen aşağıdaki soruları cevaplayınız:</p>
+        <p class="muted">Projenin tasarımını daha da iyileştirmek için lütfen aşağıdaki soruları cevaplayınız:</p>
       </div>
       
       <form id="design-feedback-form" class="form">
@@ -83,10 +83,10 @@
       </div>
     </section>
 
-    <section id="posts-section" class="posts-section">
-      <div class="page-head">
+    <section id="posts-section" class="posts-section card">
+      <div class="card-head">
         <h1>Yazılar</h1>
-        <p>Yazılarınızı yönetin ve oluşturun</p>
+        <p class="muted">Yazılarınızı yönetin ve oluşturun</p>
         <div class="actions">
           <button id="new-post-btn" class="btn btn-primary">Yeni Yazı Ekle</button>
         </div>
@@ -106,7 +106,7 @@
         <button id="create-first-post" class="btn btn-primary">İlk Yazınızı Oluşturun</button>
       </div>
 
-      <div id="post-form-section" class="post-form-section" hidden>
+      <div id="post-form-section" class="card" hidden>
         <h2 id="form-title">Yazı Oluştur</h2>
         <form id="post-form" class="form">
           <input type="hidden" id="post-id">
@@ -146,10 +146,10 @@
       </div>
     </section>
 
-    <section id="project-section">
-      <div class="page-head">
+    <section id="project-section" class="card">
+      <div class="card-head">
         <h1>Projeler</h1>
-        <p>Projelerinizi yönetin ve oluşturun</p>
+        <p class="muted">Projelerinizi yönetin ve oluşturun</p>
         <div class="actions">
           <button id="add-project-btn" class="btn btn-primary" aria-label="Yeni proje ekle">Yeni Proje Ekle</button>
         </div>
@@ -157,7 +157,7 @@
 
       <div id="projects-container" class="projects-container"></div>
 
-      <div id="project-form-container" hidden>
+      <div id="project-form-container" class="card" hidden>
         <h2 id="form-title">Yeni Proje</h2>
         <form id="project-form" class="form">
           <div class="form-group">
@@ -211,10 +211,10 @@
       </div>
     </section>
 
-    <section id="task-section">
-      <div class="page-head">
+    <section id="task-section" class="card">
+      <div class="card-head">
         <h1>Görevler</h1>
-        <p>Görevlerinizi yönetin ve oluşturun</p>
+        <p class="muted">Görevlerinizi yönetin ve oluşturun</p>
         <div class="actions">
           <button id="add-task-btn" class="btn btn-primary">Yeni Görev Ekle</button>
         </div>
@@ -222,7 +222,7 @@
 
       <div id="tasks-container" class="tasks-container"></div>
 
-      <div id="task-form-container" hidden>
+      <div id="task-form-container" class="card" hidden>
         <h2 id="task-form-title">Yeni Görev</h2>
         <form id="task-form" class="form">
           <div class="form-group">
