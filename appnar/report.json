@@ -1,6 +1,6 @@
 {
-  "revision": 16,
-  "checkedAt": "2026-10-26T01:20:51.084Z",
+  "revision": 17,
+  "checkedAt": "2026-10-26T01:26:11.365Z",
   "browserCheck": "5 buttons clicked",
   "issues": [
     "Clicking \"Gündüz/Gece temasi değiştir\" (#theme-toggle) does nothing visible (no DOM change, dialog or download).",

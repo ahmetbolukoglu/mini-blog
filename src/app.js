@@ -79,9 +79,6 @@ function init() {
 // Start the app
 init();
 
-// Initialize all sections
-initAllSections();
-
 // Initialize theme toggle
 function initThemeToggle() {
   if (themeToggle) {
@@ -248,6 +245,20 @@ function initAllSections() {
   initThemeToggle();
   initDesignFeedback();
   initPostSection();
+
+  // Add missing event listeners for buttons
+  if (newPostBtn) {
+    newPostBtn.addEventListener('click', showCreateForm);
+  }
+  if (createFirstPostBtn) {
+    createFirstPostBtn.addEventListener('click', showCreateForm);
+  }
+  if (addProjectBtn) {
+    addProjectBtn.addEventListener('click', showProjectForm);
+  }
+  if (addTaskBtn) {
+    addTaskBtn.addEventListener('click', showTaskForm);
+  }
 }
 
 // Initialize post section
