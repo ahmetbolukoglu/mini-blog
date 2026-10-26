@@ -14,11 +14,17 @@
   ],
   "language": "tr",
   "accent": "#f87171",
-  "revision": 14,
-  "requestedAt": "2026-10-26T01:14:58.267Z",
+  "revision": 15,
+  "requestedAt": "2026-10-26T01:17:03.163Z",
   "keyEndpoint": "https://wcsajvthqoyrircwlvob.supabase.co/functions/v1/ai-key",
   "engine": "local",
   "change": {
-    "text": "1. Tarihi 2023'ten 2026'ya güncelle.\n2. Footer altında fazlalık olan öğeleri kaldır."
+    "text": "Fix every problem the browser check found.",
+    "issues": [
+      "Clicking \"Gündüz/Gece temasi değiştir\" (#theme-toggle) does nothing visible (no DOM change, dialog or download).",
+      "Clicking \"Yeni Yazı Ekle\" (#new-post-btn) does nothing visible (no DOM change, dialog or download).",
+      "Clicking \"Yeni proje ekle\" (#add-project-btn) does nothing visible (no DOM change, dialog or download).",
+      "Clicking \"Yeni Görev Ekle\" (#add-task-btn) does nothing visible (no DOM change, dialog or download)."
+    ]
   }
 }
