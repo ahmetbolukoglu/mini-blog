@@ -14,8 +14,8 @@
   ],
   "language": "tr",
   "accent": "#f87171",
-  "revision": 16,
-  "requestedAt": "2026-10-26T01:19:35.088Z",
+  "revision": 17,
+  "requestedAt": "2026-10-26T01:24:52.288Z",
   "keyEndpoint": "https://wcsajvthqoyrircwlvob.supabase.co/functions/v1/ai-key",
   "engine": "local",
   "change": {
