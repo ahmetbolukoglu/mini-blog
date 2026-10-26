@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-26 · #12
+
+- İstek: lan söylüyorum ya css ler yok herhalde düzelt tasarımı!
+- Kalan sorun: 1
+
 ## 2026-10-26 · #11
 
 - İstek: Fix every problem the browser check found. The previous attempt failed in the ui step with: src/app.js still has problems: Syntax error in src/app.js: src/app.js:150 function initAllSections() { Fix the cause, then complete the request.
