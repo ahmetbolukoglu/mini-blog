@@ -127,7 +127,20 @@ function hideProjectForm() {
 // Save project
 function saveProject(e) {
   e.preventDefault();
-  // Implementation would go here
+  const name = document.getElementById('project-name').value.trim();
+  const description = document.getElementById('project-description').value.trim();
+  const dueDate = document.getElementById('project-due-date').value ? new Date(document.getElementById('project-due-date').value) : null;
+  const status = document.getElementById('project-status').value;
+  const priority = document.getElementById('project-priority').value;
+  
+  // Simple validation
+  if (!name) {
+    alert('Proje adı boş olamaz');
+    return;
+  }
+  
+  // In a real app, you would save this to your data structure
+  // For now, just hide the form
   hideProjectForm();
 }
 
@@ -155,7 +168,21 @@ function hideTaskForm() {
 // Save task
 function saveTask(e) {
   e.preventDefault();
-  // Implementation would go here
+  const name = document.getElementById('task-name').value.trim();
+  const description = document.getElementById('task-description').value.trim();
+  const projectId = document.getElementById('task-project').value;
+  const dueDate = document.getElementById('task-due-date').value ? new Date(document.getElementById('task-due-date').value) : null;
+  const status = document.getElementById('task-status').value;
+  const priority = document.getElementById('task-priority').value;
+  
+  // Simple validation
+  if (!name) {
+    alert('Görev adı boş olamaz');
+    return;
+  }
+  
+  // In a real app, you would save this to your data structure
+  // For now, just hide the form
   hideTaskForm();
 }
 
